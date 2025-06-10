@@ -2,15 +2,12 @@
 
 Astroid Vuejs is a modern front-end template built with Vue 3 and Vite, designed for rapid and efficient web application development. It leverages Vue’s composition API, fast hot module replacement, and an optimized build process to help you create scalable and maintainable user interfaces.
 
-## Recommended IDE Setup
+🌐 **Live Demo**: [https://templaza.github.io/astroid-vuejs/](https://templaza.github.io/astroid-vuejs/)
 
-- [VSCode](https://code.visualstudio.com/)
-- [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (disable Vetur)
-- [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin)
+## Useful Links
 
-## Customize Configuration
-
-See the [Vite Configuration Reference](https://vitejs.dev/config/).
+- [Astroid Framework](https://astroidframe.work/)
+- [Documentation](https://docs.astroidframe.work)
 
 ## Project Setup
 
