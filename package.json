@@ -8,22 +8,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@guolao/vue-monaco-editor": "^1.1.4",
-    "@popperjs/core": "^2.11.8",
-    "@tinymce/tinymce-vue": "^6.1.0",
-    "@vuepic/vue-datepicker": "^6.1.0",
-    "axios": "^1.4.0",
-    "bootstrap": "^5.3.0",
-    "vue": "^3.3.8",
-    "vue-color-kit": "^1.0.6",
-    "vue-search-select": "^3.1.2",
-    "vue3-dropzone": "^2.0.1",
-    "vuedraggable": "^4.1.0"
+    "@guolao/vue-monaco-editor": "latest",
+    "@popperjs/core": "latest",
+    "@tinymce/tinymce-vue": "latest",
+    "@vuepic/vue-datepicker": "latest",
+    "axios": "latest",
+    "bootstrap": "latest",
+    "vue": "latest",
+    "vue-color-kit": "latest",
+    "vue-search-select": "latest",
+    "vue3-dropzone": "latest",
+    "vuedraggable": "latest"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.1",
-    "sass": "^1.63.6",
-    "sass-loader": "^13.3.2",
-    "vite": "^6.2.0"
+    "@vitejs/plugin-vue": "latest",
+    "sass": "latest",
+    "sass-loader": "latest",
+    "vite": "latest"
   }
 }
