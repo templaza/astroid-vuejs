@@ -1,14 +1,16 @@
-# vue
+# Astroid Vuejs
 
-This template should help get you started developing with Vue 3 in Vite.
+Astroid Vuejs is a modern front-end template built with Vue 3 and Vite, designed for rapid and efficient web application development. It leverages Vue’s composition API, fast hot module replacement, and an optimized build process to help you create scalable and maintainable user interfaces.
 
 ## Recommended IDE Setup
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+- [VSCode](https://code.visualstudio.com/)
+- [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (disable Vetur)
+- [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin)
 
-## Customize configuration
+## Customize Configuration
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+See the [Vite Configuration Reference](https://vitejs.dev/config/).
 
 ## Project Setup
 
