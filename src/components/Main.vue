@@ -1,12 +1,13 @@
 <script setup>
-import {onBeforeMount, ref, reactive, inject} from 'vue';
+import {onBeforeMount, ref, reactive, inject, onUpdated} from 'vue';
 import axios from "axios";
 import Fields from './helpers/Fields.vue'
-
+const emit = defineEmits(['update:statusSave', 'update:saveSuccess']);
 const props = defineProps({
   config: { type: Object, default: null },
   pageIndex: { type: Object, default: null },
-  fieldSet_tabs: { type: Object, default: null}
+  fieldSet_tabs: { type: Object, default: null},
+    saveState: { type: Boolean, default: false }
 });
 
 const $scope = ref(new Object());
@@ -24,6 +25,36 @@ onBeforeMount(() => {
     });
   });
   action_link = props.config.astroid_lib.astroid_action.replace(/\&amp\;/g, '&');
+})
+onUpdated(()=>{
+    if (props.saveState === true) {
+        emit('update:statusSave', false);
+        const action_link = props.config.astroid_lib.astroid_action.replace(/\&amp\;/g, '&') + '&format=json&' + props.config.astroid_lib.astroid_admin_token + '=1';
+        const toastAstroidMsg = document.getElementById('mainMessage');
+        const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
+        axios.post(action_link, $scope.value, {
+            headers: {
+                'Content-Type': 'application/json; charset=UTF-8'
+            }
+        })
+            .then((response) => {
+                toast_msg.icon = 'fa-solid fa-floppy-disk';
+                if (response.data.status === 'success') {
+                    toast_msg.header= 'Style has been saved';
+                    toast_msg.body = 'Style '+props.config.astroid_lib.template_name+' has been saved';
+                    toast_msg.color = 'darkviolet';
+                } else {
+                    toast_msg.header= 'Style did not saved yet';
+                    toast_msg.body = response.data.message;
+                    toast_msg.color = 'red';
+                }
+                emit('update:saveSuccess', true);
+                toastBootstrap.show();
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
 })
 function checkShow(field) {
   if (field.ngShow !== '' && field.ngShow.match(/\[\S+?\]/)) {
@@ -95,8 +126,8 @@ function getPreset(value) {
   presets.value = value;
 }
 function selectPreset(event, group) {
-  if (event.target.value !== '' & confirm('Your current configure will be lost and overwritten by new data. Are you sure?')) {
-    const toastAstroidMsg = document.getElementById('loadGroupPreset');
+  if (event.target.value !== '' && confirm('Your current configure will be lost and overwritten by new data. Are you sure?')) {
+    const toastAstroidMsg = document.getElementById('mainMessage');
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
     let url = 'index.php?t='+Math.random().toString(36).substring(7);
     if (process.env.NODE_ENV === 'development') {
@@ -196,7 +227,7 @@ const pro_badge = '<span class="badge text-bg-danger ms-2">PRO</span>';
       <a class="nav-link" :href="constant.document_link" title="Go to Documentation" target="_blank">Documentation</a>
     </nav>
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
-      <div id="loadGroupPreset" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div id="mainMessage" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
           <i class="me-2" :class="toast_msg.icon" :style="{ color: toast_msg.color }"></i>
           <strong class="me-auto">{{ toast_msg.header }}</strong>

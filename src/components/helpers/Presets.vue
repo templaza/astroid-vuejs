@@ -133,19 +133,20 @@ function savePreset() {
         presetTitle.value.focus();
         return false;
     }
-    const action_link = constant.astroid_action.replace(/\&amp\;/g, '&');
-    const form = document.getElementById('astroid-form');
+    const action_link = constant.astroid_action.replace(/\&amp\;/g, '&')+ '&format=json&preset=1&' + constant.astroid_admin_token + '=1';
     const toastAstroidMsg = document.getElementById('loadPreset');
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-    const formData = new FormData(form); // pass data as a form;
-    formData.append('astroid-preset', 1);
-    formData.append('astroid-preset-name', formInfo.title);
-    formData.append('astroid-preset-desc', formInfo.description);
+    let data = {};
+    data['title'] = formInfo.title;
+    data['desc'] = formInfo.description;
+    data['thumbnail'] = '';
+    data['demo'] = '';
+    data['preset'] = JSON.stringify(props.data);
     save_disabled.value = true;
-    axios.post(action_link, formData, {
+    axios.post(action_link, data, {
         headers: {
-        "Content-Type": "multipart/form-data",
-        },
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
     })
     .then((response) => {
         toast_msg.icon = 'fa-solid fa-floppy-disk';

@@ -1,10 +1,11 @@
 <script setup>
 import axios from "axios";
-import { inject, onMounted, reactive, ref, watch } from "vue";
+import {inject, onMounted, onUpdated, reactive, ref, watch} from "vue";
 
-const emit = defineEmits(['update:ColorMode']);
+const emit = defineEmits(['update:ColorMode','update:saveStyle','update:saveFinished']);
 const props = defineProps({
   config: { type: Object, default: null },
+    saveStatus: { type: Boolean, default: false }
 });
 
 const theme = inject('theme', 'light');
@@ -25,6 +26,14 @@ onMounted (() => {
   switcher.value = theme.value === 'light' ? false : true;
 })
 
+onUpdated(()=>{
+    if (props.saveStatus === true) {
+        emit('update:saveFinished', false);
+        save_icon.value = 'fa-floppy-disk';
+        save_disabled.value = false;
+    }
+})
+
 watch(switcher, (newValue) => {
   emit('update:ColorMode', newValue ? 'dark' : 'light');
 })
@@ -36,35 +45,10 @@ const social_menu = [
   {title: 'Buy Me a Coffee', href: props.config.astroid_lib.donate_link, icon: 'fa-solid fa-mug-saucer'}
 ]
 function submitForm() {
-  const action_link = props.config.astroid_lib.astroid_action.replace(/\&amp\;/g, '&');
-  const toastAstroidMsg = document.getElementById('astroidMessage');
-  const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-  const formData = new FormData(document.getElementById('astroid-form')); // pass data as a form;
-  save_icon.value = 'fa-sync fa-spin'
-  save_disabled.value = true;
-  axios.post(action_link, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  })
-  .then((response) => {
-    toast_msg.icon = 'fa-solid fa-floppy-disk';
-    if (response.data.status === 'success') {
-      toast_msg.header= 'Style has been saved';
-      toast_msg.body = 'Style '+props.config.astroid_lib.template_name+' has been saved';
-      toast_msg.color = 'darkviolet';
-    } else {
-      toast_msg.header= 'Style did not saved yet';
-      toast_msg.body = response.data.message;
-      toast_msg.color = 'red';
-    }
-    save_icon.value = 'fa-floppy-disk';
-    save_disabled.value = false;
-    toastBootstrap.show();
-  })
-  .catch((err) => {
-    console.error(err);
-  });
+    emit('update:saveStyle', true);
+    save_icon.value = 'fa-sync fa-spin'
+    save_disabled.value = true;
+    return false;
 }
 
 function clearCache() {
@@ -172,17 +156,4 @@ function clearCache() {
       </div>
     </nav>
   </header>
-  <div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="astroidMessage" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="toast-header">
-        <i class="me-2" :class="toast_msg.icon" :style="{color: toast_msg.color}"></i>
-        <strong class="me-auto">{{ toast_msg.header }}</strong>
-        <small>1 second ago</small>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body">
-        {{ toast_msg.body }}
-      </div>
-    </div>
-  </div>
 </template>
