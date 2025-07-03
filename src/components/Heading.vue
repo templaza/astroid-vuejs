@@ -113,7 +113,7 @@ function clearCache() {
             <div class="vr d-none d-lg-flex h-100 me-lg-4"></div>
             <ul class="navbar-nav flex-row flex-wrap">
               <li class="nav-item col-6 col-lg-auto d-grid">
-                <button class="btn btn-sm btn-as btn-as-primary" type="button" @click.prevent="submitForm" :disabled="save_disabled">
+                <button class="btn btn-sm btn-as btn-as-primary" type="button" id="save_template_style" @click.prevent="submitForm" :disabled="save_disabled">
                   <i class="fas me-1" :class="save_icon"></i>
                   {{ props.config.astroid_lang.ASTROID_SAVE }}
                 </button>

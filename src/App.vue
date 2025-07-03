@@ -91,6 +91,13 @@ function saveStyle() {
   <Heading :config="astroid_config" :saveStatus="saveFinished" @update:ColorMode="updateColorMode" @update:saveStyle="saveStyle" @update:saveFinished="status => (saveFinished = status)" />
     <div class="container-xxl as-gutter mt-3 my-md-4 as-layout">
         <Sidebar :config="astroid_config" @sidebar-active="pageActive" />
-        <Main :config="astroid_config" :page-index="pageIndex" :field-set_tabs="fieldSet_tabs" :saveState="saveState" @update:statusSave="status => (saveState = status)" @update:saveSuccess="status => (saveFinished = status)" />
+        <Main :config="astroid_config"
+              :page-index="pageIndex"
+              :field-set_tabs="fieldSet_tabs"
+              :saveState="saveState"
+              @update:statusSave="status => (saveState = status)"
+              @update:saveFinish="status => (saveFinished = status)"
+              @update:switchPage="pageActive"
+        />
     </div>
 </template>

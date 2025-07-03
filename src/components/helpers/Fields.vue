@@ -21,13 +21,14 @@ import Categories from './Categories.vue';
 import Assignment from './Assignment.vue';
 import Border from './Border.vue';
 import SubLayouts from './SubLayouts.vue';
+import MainLayouts from "./MainLayouts.vue";
 import Range from './Range.vue';
 import SwitchBox from "./SwitchBox.vue";
 import Text from "./Text.vue";
 import DynamicContent from "./DynamicContent.vue";
 import AstroidGetPro from "./AstroidGetPro.vue";
 
-const emit = defineEmits(['update:contentlayout', 'update:loadPreset', 'update:getPreset', 'update:subFormState', 'update:presetState']);
+const emit = defineEmits(['update:contentlayout', 'update:loadPreset', 'update:getPreset', 'update:subFormState', 'update:presetState', 'update:mainLayoutState']);
 const props = defineProps({
     field: { type: Object, default: null },
     scope: { type: Object, default: null },
@@ -240,11 +241,11 @@ function removeDynamicField() {
     <div v-else-if="props.field.input.type === `astroidborder`" class="astroid-border">
         <Border v-model="props.scope[props.field.name]" :field="props.field" :colorMode="getColorMode()" />
     </div>
-    <div v-else-if="props.field.input.type === `sublayouts`" class="astroid-sub-layouts">
-        <SubLayouts v-model="props.scope[props.field.name]" :field="props.field" :colorMode="getColorMode()" />
+    <div v-else-if="props.field.input.type === `layouts`" class="astroid-layouts">
+        <SubLayouts v-model="props.scope[props.field.name]" :field="props.field" :colorMode="getColorMode()" :type="props.field.input.category" />
     </div>
-    <div v-else-if="props.field.input.type === `articlelayouts`" class="astroid-article-layouts">
-        <SubLayouts v-model="props.scope[props.field.name]" :field="props.field" :colorMode="getColorMode()" type="article_layouts" />
+    <div v-else-if="props.field.input.type === `mainlayouts`" class="astroid-main-layouts">
+        <MainLayouts v-model="props.scope[props.field.name]" :field="props.field" :colorMode="getColorMode()" :presetUpdated="props.presetUpdated" @update:Preset="state => (emit('update:presetState', state))" @update:layoutSaved="state => (emit('update:mainLayoutState', state))" @update:subLayouts="updateSubLayouts" />
     </div>
     <div v-else-if="props.field.input.type === `dynamiccontent`" class="astroid-dynamic-content">
         <DynamicContent v-model="props.scope[props.field.name]" :field="props.field" />

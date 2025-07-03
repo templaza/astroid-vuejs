@@ -224,3 +224,19 @@
     }
     margin-bottom: -1rem;
 }
+
+.astroid-main-layouts {
+    .astroid-layout {
+        .responsive-devices {
+            &.astroid-btn-group {
+                @media (min-width: 768px) {
+                    margin-top: 0;
+                }
+                margin-top: 0;
+            }
+        }
+    }
+    .layout-toolbar {
+        background-color: rgba(189,189,189,0.03);
+    }
+}

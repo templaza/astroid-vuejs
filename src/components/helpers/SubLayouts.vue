@@ -1,6 +1,6 @@
 <script setup>
 import axios from "axios";
-import { ref, reactive, onMounted, inject, onUpdated } from "vue";
+import {ref, reactive, onMounted, inject, onUpdated} from "vue";
 import Layout from "./Layout.vue";
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
