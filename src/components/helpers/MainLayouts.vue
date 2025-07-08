@@ -45,7 +45,7 @@ onBeforeMount(() => {
         default_layout.value = props.field.input.value;
         resetFormInfo(true);
     }
-    callAjax('first_load');
+    callAjax();
 })
 
 onUpdated(()=>{
@@ -95,7 +95,7 @@ watch(layout, (newText) => {
     }
 })
 
-function editLayout(filename = '', status = 'loaded') {
+function editLayout(filename = '') {
     if (filename !== '') {
         if (selected_layout.value === '') {
             if (!confirm('You do not save your current layout. Do you want to switch to '+filename+'?')) {
@@ -140,7 +140,7 @@ function editLayout(filename = '', status = 'loaded') {
                         desc: response.data.data.desc,
                         thumbnail: response.data.data.thumbnail,
                         data: response.data.data.data,
-                        status: status
+                        status: 'first_load'
                     };
                     if (filename === props.modelValue) {
                         default_layout.value = response.data.data.data;
@@ -291,10 +291,16 @@ function deleteLayout() {
                     } else {
                         toast_msg.icon = 'fa-regular fa-face-sad-tear';
                         toast_msg.header = 'Error!';
-                        toast_msg.body = response.data.message;
+                        toast_msg.body = 'Layouts are not deleted.';
                         toast_msg.color = 'red';
                     }
                     callAjax();
+                    toastBootstrap.show();
+                } else {
+                    toast_msg.icon = 'fa-regular fa-face-sad-tear';
+                    toast_msg.header = 'Error!';
+                    toast_msg.body = response.data.message;
+                    toast_msg.color = 'red';
                     toastBootstrap.show();
                 }
             })
@@ -306,7 +312,7 @@ function deleteLayout() {
 function isJsonString(str) {
     return /^\s*(\{.*\}|\[.*\])\s*$/.test(str);
 }
-function callAjax(status = 'loaded') {
+function callAjax() {
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayouts&type=main_layouts&template="+constant.tpl_template_name+"&ts="+Date.now();
     if (process.env.NODE_ENV === 'development') {
         url = "layout_ajax.txt?ts="+Date.now();
@@ -328,10 +334,10 @@ function callAjax(status = 'loaded') {
                                     if (!found) {
                                         emit('update:modelValue', response.data.data[0].name);
                                         selected_layout.value = response.data.data[0].name;
-                                        editLayout(response.data.data[0].name, 'loaded');
+                                        editLayout(response.data.data[0].name);
                                     } else {
                                         selected_layout.value = props.modelValue;
-                                        editLayout(props.modelValue, status);
+                                        editLayout(props.modelValue);
                                     }
                                 }, 500
                             )
@@ -436,9 +442,7 @@ function markAsDefault() {
                     <small>1 second ago</small>
                     <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
-                <div class="toast-body">
-                    {{ toast_msg.body }}
-                </div>
+                <div class="toast-body" v-html="toast_msg.body"></div>
             </div>
         </div>
     </div>
