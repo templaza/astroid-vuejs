@@ -230,8 +230,8 @@ function saveLayout(action = 'save') {
                     emit('update:modelValue', response.data.data);
                     default_layout.value = layout.value;
                 }
-                layouts.value.forEach((item, key) => {
-                    if (key !== response.data.data && item.status === 'updated') {
+                Object.keys(layouts.value).forEach(key => {
+                    if (key !== response.data.data && layouts.value[key].status === 'updated') {
                         emit('update:layoutSaved', false);
                     }
                 });
