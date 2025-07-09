@@ -224,11 +224,17 @@ function saveLayout(action = 'save') {
                     data: layout.value,
                     status: 'saved'
                 };
+                emit('update:layoutSaved', true);
                 selected_layout.value = response.data.data;
                 if (formInfo.default) {
                     emit('update:modelValue', response.data.data);
                     default_layout.value = layout.value;
                 }
+                layouts.value.forEach((item, key) => {
+                    if (key !== response.data.data && item.status === 'updated') {
+                        emit('update:layoutSaved', false);
+                    }
+                });
                 callAjax();
                 if (action !== 'apply') {
                     document.getElementById(props.field.input.id+`_saveLayout_close`).click();
