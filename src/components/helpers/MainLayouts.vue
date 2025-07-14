@@ -109,6 +109,10 @@ function editLayout(filename = '') {
             formInfo.desc = layouts.value[filename].desc;
             formInfo.thumbnail = layouts.value[filename].thumbnail;
             formInfo.name = filename;
+            if (filename === props.modelValue) {
+                default_layout.value = layouts.value[filename].data;
+                formInfo.default = true;
+            }
             selected_layout.value = filename;
             return true;
         }
@@ -358,8 +362,10 @@ function callAjax() {
         });
 }
 const _formTitle = ref(null);
-function markAsDefault() {
-    if (formInfo.name !== props.modelValue) {
+function markAsDefault(name = '') {
+    if (name !== '') {
+        emit('update:modelValue', name);
+    } else if (formInfo.name !== props.modelValue) {
         emit('update:modelValue', formInfo.name);
         formInfo.default = true;
     }
@@ -380,6 +386,7 @@ function markAsDefault() {
                                             `<span class='position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-warning z-1 p-1 blink'><span class='visually-hidden'>unsaved layout</span></span>`
                                             : `<span class='position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-success z-1 p-1'><span class='visually-hidden'>saved layout</span></span>`)
                                         : ``)"></button>
+                            <button v-if="item.name !== props.modelValue" type="button" class="btn btn-sm" :class="{'btn-as-outline-primary': item.name === selected_layout, 'btn-as-light': item.name !== selected_layout}" @click.prevent="markAsDefault(item.name)" v-html="`<i class='fa-solid fa-star fa-xs text-body-tertiary'></i>`"></button>
                             <button v-if="item.name !== props.modelValue" type="button" class="btn btn-sm" :class="{'btn-as-outline-primary': item.name === selected_layout, 'btn-as-light': item.name !== selected_layout}" @click.prevent="checklist = [item.name]; deleteLayout()" v-html="`<i class='fa-solid fa-times'></i>`"></button>
                         </div>
                     </div>
@@ -431,14 +438,14 @@ function markAsDefault() {
                     </div>
                 </div>
             </div>
-            <div class="as-sublayout-bottom-toolbox sticky-bottom bg-body-tertiary px-4 py-3 border border-bottom-0 rounded-top-3 mt-5">
-                <button :id="props.field.input.id+`_saveLayout_opendialog`" class="d-none" type="button" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_saveLayout`">Open Dialog</button>
+            <div v-if="!isJsonString(props.modelValue)" class="as-sublayout-bottom-toolbox sticky-bottom bg-body-tertiary px-4 py-3 border border-bottom-0 rounded-top-3 mt-5">
                 <a href="#" @click.prevent="saveLayout(formInfo.name !== `` ? 'apply' : 'new')" class="btn btn-sm btn-as btn-as-primary me-2" :disabled="save_disabled" v-html="`<i class='fa-solid fa-floppy-disk me-2'></i>`+language.JAPPLY"></a>
-                <a v-if="formInfo.name !== `` && formInfo.name !== props.modelValue && !isJsonString(props.modelValue)" href="#" class="btn btn-sm btn-as btn-as-light me-2" @click.prevent="markAsDefault()" :disabled="save_disabled">Mark as Default</a>
+                <a v-if="formInfo.name !== `` && formInfo.name !== props.modelValue" href="#" class="btn btn-sm btn-as btn-as-light me-2" @click.prevent="markAsDefault()" :disabled="save_disabled">Mark as Default</a>
                 <a v-if="formInfo.name !== ``" href="#" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_saveLayout`" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_EDIT_INFO }}</a>
-                <a v-if="formInfo.name !== props.modelValue && !isJsonString(props.modelValue)" href="#" @click.prevent="loadDefault()" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_LOAD_DEFAULT_SETTINGS }}</a>
+                <a v-if="formInfo.name !== props.modelValue" href="#" @click.prevent="loadDefault()" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_LOAD_DEFAULT_SETTINGS }}</a>
                 <a v-if="formInfo.name === ``" href="#" @click.prevent="cancelLayout()" class="btn btn-sm btn-as btn-as-light" :disabled="save_disabled">{{ language.JCANCEL }}</a>
             </div>
+            <button :id="props.field.input.id+`_saveLayout_opendialog`" class="d-none" type="button" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_saveLayout`">Open Dialog</button>
         </div>
         <div class="toast-container position-fixed bottom-0 end-0 p-3">
             <div :id="props.field.input.id+`_saveLayoutToast`" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
