@@ -193,11 +193,6 @@ function saveLayout(action = 'save') {
         }
         return true;
     }
-    if (formInfo.default) {
-        if (!confirm(language.TPL_ASTROID_OVERRIDE_DEFAULT_LAYOUT_WARNING)) {
-            return true;
-        }
-    }
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
     const formData = new FormData(); // pass data as a form
     const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
