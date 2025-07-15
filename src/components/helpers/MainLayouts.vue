@@ -97,6 +97,10 @@ watch(layout, (newText) => {
 
 function editLayout(filename = '') {
     if (filename !== '') {
+        if (isJsonString(props.modelValue)) {
+            alert('You have to save your current layout as Default before switching to another layout.');
+            return true;
+        }
         if (selected_layout.value === '') {
             if (!confirm('You do not save your current layout. Do you want to switch to '+filename+'?')) {
                 return true;
@@ -112,6 +116,8 @@ function editLayout(filename = '') {
             if (filename === props.modelValue) {
                 default_layout.value = layouts.value[filename].data;
                 formInfo.default = true;
+            } else {
+                formInfo.default = false;
             }
             selected_layout.value = filename;
             return true;
@@ -148,6 +154,9 @@ function editLayout(filename = '') {
                     };
                     if (filename === props.modelValue) {
                         default_layout.value = response.data.data.data;
+                        formInfo.default = true;
+                    } else {
+                        formInfo.default = false;
                     }
                 }
             })
