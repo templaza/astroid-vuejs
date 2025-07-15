@@ -4,7 +4,8 @@ import { onBeforeMount, ref, reactive, onMounted, inject } from 'vue';
 
 const emit = defineEmits(['update:loadPreset', 'update:getPreset']);
 const props = defineProps({
-    field: { type: Object, default: null }
+    field: { type: Object, default: null },
+    scope: { type: Object, default: null }
 });
 const constant = inject('constant', {});
 const toast_msg = reactive({
@@ -141,7 +142,7 @@ function savePreset() {
     data['desc'] = formInfo.description;
     data['thumbnail'] = '';
     data['demo'] = '';
-    data['preset'] = JSON.stringify(props.data);
+    data['preset'] = props.scope;
     save_disabled.value = true;
     axios.post(action_link, data, {
         headers: {

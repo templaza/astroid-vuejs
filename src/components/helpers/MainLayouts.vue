@@ -53,13 +53,11 @@ onUpdated(()=>{
         emit('update:Preset', false);
         if (props.modelValue !== '') {
             if (isJsonString(props.modelValue)) {
-                if (layout.value !== props.modelValue) {
-                    reloadLayout.value = true;
-                    layout.value = props.modelValue;
-                    default_layout.value = props.modelValue;
-                    resetFormInfo();
-                }
-                formInfo.default = true;
+                reloadLayout.value = true;
+                layout.value = props.modelValue;
+                default_layout.value = props.modelValue;
+                selected_layout.value = '';
+                resetFormInfo(true);
             } else {
                 const found = items.value.find(item => item.name === props.modelValue);
                 if (found) {
@@ -68,6 +66,7 @@ onUpdated(()=>{
                     reloadLayout.value = true;
                     layout.value = props.field.input.value;
                     default_layout.value = props.field.input.value;
+                    selected_layout.value = '';
                     resetFormInfo(true);
                 }
             }
@@ -75,6 +74,7 @@ onUpdated(()=>{
             reloadLayout.value = true;
             layout.value = props.field.input.value;
             default_layout.value = props.field.input.value;
+            selected_layout.value = '';
             resetFormInfo(true);
         }
     }

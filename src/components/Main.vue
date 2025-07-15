@@ -134,7 +134,12 @@ function onUpdatePreset(key) {
     updatePreset.value[key] = true;
 }
 function loadPreset(value) {
-  let tmp = JSON.parse(value);
+  let tmp = '';
+  if (typeof value === 'string') {
+    tmp = JSON.parse(value);
+  } else {
+    tmp = value;
+  }
   Object.keys(tmp).forEach(key => {
     $scope.value[key] = tmp[key];
       updatePreset.value[key] = true;

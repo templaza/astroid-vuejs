@@ -214,7 +214,7 @@ function removeDynamicField() {
         <MultiSelect v-model="props.scope[props.field.name]" :field="props.field" />
     </div>
     <div v-else-if="props.field.input.type === `astroidpreset`" class="astroid-preset">
-        <Presets :field="props.field" @update:loadPreset="(value) => {emit('update:loadPreset', value)}" @update:getPreset="(value) => {emit('update:getPreset', value)}" />
+        <Presets :field="props.field" :scope="props.scope" @update:loadPreset="(value) => {emit('update:loadPreset', value)}" @update:getPreset="(value) => {emit('update:getPreset', value)}" />
     </div>
     <div v-else-if="props.field.input.type === `astroidsubform`" class="astroid-subform">
         <SubForm v-model="props.scope[props.field.name]" :field="props.field" :colorMode="getColorMode()" :actSave="props.actSave" @update:subFormState="(value) => {emit('update:subFormState', value)}" />
