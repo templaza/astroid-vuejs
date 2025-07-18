@@ -16,8 +16,8 @@ onMounted(()=>{
 })
 
 onUpdated(()=>{
+    selected.value = props.modelValue;
     if (props.fieldChanged === true) {
-        selected.value = props.modelValue;
         emit('update:statusField', false);
     }
 })

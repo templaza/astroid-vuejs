@@ -390,7 +390,7 @@ function markAsDefault(name = '') {
                                             `<span class='position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-warning z-1 p-1 blink'><span class='visually-hidden'>unsaved layout</span></span>`
                                             : `<span class='position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-success z-1 p-1'><span class='visually-hidden'>saved layout</span></span>`)
                                         : ``)"></button>
-                            <button v-if="item.name !== props.modelValue" type="button" class="btn btn-sm" :class="{'btn-as-outline-primary': item.name === selected_layout, 'btn-as-light': item.name !== selected_layout}" @click.prevent="markAsDefault(item.name)" v-html="`<i class='fa-solid fa-star fa-xs text-body-tertiary'></i>`"></button>
+                            <button v-if="item.name !== props.modelValue" type="button" class="btn btn-sm" :class="{'btn-as-outline-primary': item.name === selected_layout, 'btn-as-light': item.name !== selected_layout}" @click.prevent="markAsDefault(item.name)" v-html="`<i class='fa-solid fa-star fa-xs'></i>`"></button>
                             <button v-if="item.name !== props.modelValue" type="button" class="btn btn-sm" :class="{'btn-as-outline-primary': item.name === selected_layout, 'btn-as-light': item.name !== selected_layout}" @click.prevent="checklist = [item.name]; deleteLayout()" v-html="`<i class='fa-solid fa-times'></i>`"></button>
                         </div>
                     </div>
