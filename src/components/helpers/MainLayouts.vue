@@ -273,11 +273,6 @@ function resetValues() {
     layout.value = default_layout.value;
     resetFormInfo();
 }
-
-function cancelLayout() {
-    editLayout(props.modelValue);
-}
-
 function deleteLayout() {
     if (confirm(language.JGLOBAL_CONFIRM_DELETE) && checklist.value.length) {
         let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=deletelayouts&ts="+Date.now();
@@ -447,7 +442,7 @@ function markAsDefault(name = '') {
                 <a v-if="formInfo.name !== `` && formInfo.name !== props.modelValue" href="#" class="btn btn-sm btn-as btn-as-light me-2" @click.prevent="markAsDefault()" :disabled="save_disabled">Mark as Default</a>
                 <a v-if="formInfo.name !== ``" href="#" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_saveLayout`" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_EDIT_INFO }}</a>
                 <a v-if="formInfo.name !== props.modelValue" href="#" @click.prevent="loadDefault()" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_LOAD_DEFAULT_SETTINGS }}</a>
-                <a v-if="formInfo.name === ``" href="#" @click.prevent="cancelLayout()" class="btn btn-sm btn-as btn-as-light" :disabled="save_disabled">{{ language.JCANCEL }}</a>
+                <a href="#" @click.prevent="" class="btn btn-sm btn-as btn-as-light" :disabled="save_disabled">{{ language.JCANCEL }}</a>
             </div>
             <button :id="props.field.input.id+`_saveLayout_opendialog`" class="d-none" type="button" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_saveLayout`">Open Dialog</button>
         </div>
