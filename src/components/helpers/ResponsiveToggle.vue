@@ -10,6 +10,7 @@ const props = defineProps({
 });
 const language  =   inject('language', []);
 const icons = ref({
+    global: 'fa-solid fa-globe',
     larger_desktop: 'fa-solid fa-tv',
     large_desktop: 'fa-solid fa-desktop',
     desktop: 'fa-solid fa-laptop',
@@ -18,12 +19,13 @@ const icons = ref({
     mobile: 'fa-solid fa-mobile'
 })
 const options = ref({
-    mobile: language.JDEFAULT,
-    landscape_mobile: language.ASTROID_SM,
-    tablet: language.ASTROID_TABLET,
-    desktop: language.ASTROID_DESKTOP,
+    global: language.ASTROID_GLOBAL,
+    larger_desktop: language.ASTROID_XXL,
     large_desktop: language.ASTROID_XL,
-    larger_desktop: language.ASTROID_XXL
+    desktop: language.ASTROID_DESKTOP,
+    tablet: language.ASTROID_TABLET,
+    landscape_mobile: language.ASTROID_SM,
+    mobile: language.ASTROID_MOBILE,
 })
 onBeforeMount(()=>{
     if (Object.keys(props.options).length) {

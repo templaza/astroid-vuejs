@@ -5,9 +5,10 @@ import {onBeforeMount, onMounted, onUpdated, ref, watch, computed, inject} from 
 const emit = defineEmits(['update:modelValue', 'update:Preset']);
 const props = defineProps(['modelValue', 'field', 'presetUpdated']);
 const language  =   inject('language', []);
-const devices = ['mobile', 'landscape_mobile', 'tablet', 'desktop', 'large_desktop', 'larger_desktop'];
-const active = ref('mobile');
+const devices = ['mobile', 'landscape_mobile', 'tablet', 'desktop', 'large_desktop', 'larger_desktop', 'global'];
+const active = ref('global');
 const data = ref({
+    global: '',
     larger_desktop: '',
     large_desktop: '',
     desktop: '',
@@ -15,6 +16,7 @@ const data = ref({
     landscape_mobile: '',
     mobile: '',
     postfix: {
+        'global' : '',
         'larger_desktop' : '',
         'large_desktop' : '',
         'desktop' : '',
@@ -24,6 +26,7 @@ const data = ref({
     }
 })
 const placeholder = ref({
+    'global' : '',
     'larger_desktop' : '',
     'large_desktop' : '',
     'desktop' : '',
@@ -42,6 +45,7 @@ function init() {
             }
             if (typeof data.value.postfix === 'undefined') {
                 data.value.postfix = {
+                    'global' : '',
                     'larger_desktop' : '',
                     'large_desktop' : '',
                     'desktop' : '',
@@ -54,6 +58,7 @@ function init() {
             data.value.mobile = props.modelValue;
             if (typeof data.value.postfix === 'undefined') {
                 data.value.postfix = {
+                    'global' : '',
                     'larger_desktop' : '',
                     'large_desktop' : '',
                     'desktop' : '',
@@ -94,12 +99,13 @@ onUpdated(()=>{
 const fieldChanged = ref(false);
 function updatePlaceholder() {
     let lastDevice = '';
-    devices.forEach(device => {
+    for (let i = devices.length - 1; i >= 0; i--) {
+        const device = devices[i];
         placeholder.value[device] = lastDevice;
         if (data.value[device]) {
             lastDevice = 'Inherit value ' + data.value[device] + data.value.postfix[device] + ' from ' + language['ASTROID_' + device.toUpperCase()];
         }
-    })
+    }
 }
 
 function updatePostfix(postfix) {

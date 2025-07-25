@@ -1,12 +1,18 @@
 <script setup>
-import { onMounted, onUpdated, onBeforeMount, reactive, ref, watch } from 'vue';
+import {onMounted, onUpdated, onBeforeMount, reactive, ref, inject} from 'vue';
 import ResponsiveToggle from "./ResponsiveToggle.vue";
 const emit = defineEmits(['update:changeDevice', 'update:statusField']);
 const props = defineProps(['modelValue', 'field', 'fieldname', 'currentDevice', 'fieldChanged']);
-const devices = ['mobile', 'landscape_mobile', 'tablet', 'desktop', 'large_desktop', 'larger_desktop'];
+const constant = inject('constant', {});
+const devices = ['mobile', 'landscape_mobile', 'tablet', 'desktop', 'large_desktop', 'larger_desktop', 'global'];
 const unitOptions = ['px', 'em', 'rem', 'pt', '%'];
 const rangeConfig = reactive(
     {
+        'global' : {
+            'max' : 100,
+            'step': 1,
+            'priority': 6
+        },
         'larger_desktop' : {
             'max' : 100,
             'step': 1,
@@ -40,6 +46,7 @@ const rangeConfig = reactive(
     }
 )
 const placeholder = ref({
+    'global' : '',
     'larger_desktop' : '',
     'large_desktop' : '',
     'desktop' : '',
@@ -77,6 +84,9 @@ onMounted(() => {
             if (rangeConfig[props.currentDevice].priority < rangeConfig[device].priority) {
                 changeDevice(device);
             }
+            if (constant.astroid_legacy && (typeof props.modelValue[props.fieldname]['global'] === 'undefined' || props.modelValue[props.fieldname]['global'] === '')) {
+                props.modelValue[props.fieldname]['global'] = props.modelValue[props.fieldname][device];
+            }
         }
     })
 })
@@ -97,12 +107,13 @@ function updateUnit() {
 }
 function updatePlaceholder() {
     let lastDevice = '';
-    devices.forEach(device => {
+    for (let i = devices.length - 1; i >= 0; i--) {
+        const device = devices[i];
         placeholder.value[device] = lastDevice;
         if (props.modelValue[props.fieldname][device]) {
             lastDevice = props.modelValue[props.fieldname][device];
         }
-    })
+    }
 }
 </script>
 <template>

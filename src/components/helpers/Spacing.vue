@@ -1,12 +1,21 @@
 <script setup>
-import { onBeforeMount, onMounted, ref } from 'vue';
+import {inject, onBeforeMount, onMounted, ref} from 'vue';
 import ResponsiveToggle from "./ResponsiveToggle.vue";
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps(['modelValue', 'field']);
-const devices = ['mobile', 'landscape_mobile', 'tablet', 'desktop', 'large_desktop', 'larger_desktop'];
+const devices = ['mobile', 'landscape_mobile', 'tablet', 'desktop', 'large_desktop', 'larger_desktop', 'global'];
 const unitOptions = ['px', 'em', 'rem', 'pt', '%', 'Custom'];
-const currentDevice = ref('mobile');
+const constant = inject('constant', {});
+const currentDevice = ref('global');
 const data = ref({
+    'global' : {
+        'top'       : null,
+        'right'     : null,
+        'bottom'    : null,
+        'left'      : null,
+        'lock'      : false,
+        'unit'      : 'px'
+    },
     'larger_desktop' : {
         'top'       : null,
         'right'     : null,
@@ -57,6 +66,12 @@ const data = ref({
     }
 });
 const placeholder = ref({
+    'global' : {
+        'top'       : null,
+        'right'     : null,
+        'bottom'    : null,
+        'left'      : null,
+    },
     'larger_desktop' : {
         'top'       : null,
         'right'     : null,
@@ -105,33 +120,29 @@ onBeforeMount(()=>{
 })
 const fieldChanged = ref(false);
 onMounted(()=>{
-    let lastDevice = null;
     positions.forEach(position => {
-        lastDevice = null;
-        devices.forEach(device => {
-            placeholder.value[device][position] = lastDevice;
-            if (data.value[device][position]) {
-                lastDevice = data.value[device][position];
+        if (constant.astroid_legacy && (data.value.global[position] === null || data.value.global[position] === '')) {
+            for (let i = devices.length - 1; i >= 0; i--) {
+                const device = devices[i];
+                if (data.value[device][position] && data.value[device][position] !== '') {
+                    data.value.global[position] = data.value[device][position];
+                    break;
+                }
             }
-        });
+        }
+        updatePlaceholder(position);
     });
-    devices.forEach(device => {
-        positions.forEach(position => {
-            if (data.value[device][position] && currentDevice.value !== device) {
-                fieldChanged.value = true;
-                currentDevice.value = device;
-            }
-        })
-    })
+    emit('update:modelValue', JSON.stringify(data.value));
 })
 function updatePlaceholder(position) {
     let lastDevice = null;
-    devices.forEach(device => {
+    for (let i = devices.length - 1; i >= 0; i--) {
+        const device = devices[i];
         placeholder.value[device][position] = lastDevice;
         if (data.value[device][position]) {
             lastDevice = data.value[device][position];
         }
-    });
+    }
 }
 function changeDevice(device) {
     currentDevice.value = device;

@@ -58,7 +58,7 @@ const fontSelected= ref({
 });
 const fonttypes = ref(['system','google'])
 const font_type = ref('google');
-const currentDevice = ref('mobile');
+const currentDevice = ref('global');
 const collapse = ref(false);
 
 function getFontType(font_face) {
