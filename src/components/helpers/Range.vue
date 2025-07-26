@@ -7,6 +7,7 @@ const props = defineProps(['modelValue', 'field', 'presetUpdated']);
 const language  =   inject('language', []);
 const devices = ['mobile', 'landscape_mobile', 'tablet', 'desktop', 'large_desktop', 'larger_desktop', 'global'];
 const active = ref('global');
+const constant = inject('constant', {});
 const data = ref({
     global: '',
     larger_desktop: '',
@@ -39,9 +40,15 @@ function init() {
         try {
             const tmp = JSON.parse(props.modelValue);
             if (typeof tmp === 'object' && !Array.isArray(tmp) && tmp !== null) {
-                data.value    = JSON.parse(props.modelValue);
+                data.value = {
+                    ...data.value,
+                    ...JSON.parse(props.modelValue)
+                };
+                if (typeof data.value.postfix.global === 'undefined') {
+                    data.value.postfix.global = '';
+                }
             } else {
-                data.value.mobile = props.modelValue;
+                data.value.global = props.modelValue;
             }
             if (typeof data.value.postfix === 'undefined') {
                 data.value.postfix = {
@@ -55,7 +62,7 @@ function init() {
                 }
             }
         } catch (e) {
-            data.value.mobile = props.modelValue;
+            data.value.global = props.modelValue;
             if (typeof data.value.postfix === 'undefined') {
                 data.value.postfix = {
                     'global' : '',
@@ -81,13 +88,17 @@ onMounted(()=>{
             data.value.postfix[key] = postfix.value[0];
         });
     }
-    updatePlaceholder();
     devices.forEach(device => {
-        if (data.value[device] && active.value !== device) {
-            fieldChanged.value = true;
-            active.value = device;
+        if (data.value[device]) {
+            if (constant.astroid_legacy && (typeof data.value.global === 'undefined' || data.value.global === '')) {
+                data.value.global = data.value[device];
+            } else if (active.value !== device) {
+                fieldChanged.value = true;
+                active.value = device;
+            }
         }
     })
+    updatePlaceholder();
 })
 onUpdated(()=>{
     if (props.presetUpdated === true) {
