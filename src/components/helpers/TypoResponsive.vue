@@ -78,17 +78,25 @@ onMounted(() => {
     Object.keys(props.modelValue[props.fieldname+`_unit`]).forEach(key => {
         updateRange(key);
     });
+    if (constant.astroid_legacy && (typeof props.modelValue[props.fieldname]['global'] === 'undefined' || props.modelValue[props.fieldname]['global'] === '')) {
+        for (let i = devices.length - 1; i >= 0; i--) {
+            const device = devices[i];
+            if (typeof props.modelValue[props.fieldname][device] !== 'undefined' && props.modelValue[props.fieldname][device] !== '') {
+                props.modelValue[props.fieldname]['global'] = props.modelValue[props.fieldname][device];
+                break;
+            }
+        }
+    }
     updatePlaceholder();
-    devices.forEach(device => {
+    for (let i = devices.length - 1; i >= 0; i--) {
+        const device = devices[i];
         if (typeof props.modelValue[props.fieldname][device] !== 'undefined' && props.modelValue[props.fieldname][device] !== '') {
             if (rangeConfig[props.currentDevice].priority < rangeConfig[device].priority) {
                 changeDevice(device);
-            }
-            if (constant.astroid_legacy && (typeof props.modelValue[props.fieldname]['global'] === 'undefined' || props.modelValue[props.fieldname]['global'] === '')) {
-                props.modelValue[props.fieldname]['global'] = props.modelValue[props.fieldname][device];
+                break;
             }
         }
-    })
+    }
 })
 onUpdated(() => {
     updateUnit();

@@ -88,16 +88,25 @@ onMounted(()=>{
             data.value.postfix[key] = postfix.value[0];
         });
     }
-    devices.forEach(device => {
-        if (data.value[device]) {
-            if (constant.astroid_legacy && (typeof data.value.global === 'undefined' || data.value.global === '')) {
+    if (constant.astroid_legacy && (typeof data.value.global === 'undefined' || data.value.global === '')) {
+        for (let i = devices.length - 1; i >= 0; i--) {
+            const device = devices[i];
+            if (typeof data.value[device] !== 'undefined' && data.value[device] !== '') {
                 data.value.global = data.value[device];
-            } else if (active.value !== device) {
+                break;
+            }
+        }
+    }
+    for (let i = devices.length - 1; i >= 0; i--) {
+        const device = devices[i];
+        if (typeof data.value[device] !== 'undefined' && data.value[device] !== '') {
+            if (active.value !== device) {
                 fieldChanged.value = true;
                 active.value = device;
             }
+            break;
         }
-    })
+    }
     updatePlaceholder();
 })
 onUpdated(()=>{
