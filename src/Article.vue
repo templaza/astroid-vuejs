@@ -100,6 +100,6 @@ function elementState(widget) {
         </div>
     </div>
     <Transition name="fade">
-        <Modal v-if="_showModal" :element="element" :form="data.constant.form_template[element.type]" @update:saveElement="saveElement" @update:close-element="closeElement" />
+        <Modal v-if="_showModal" :element="element" :form="data.constant.form_template[element.type]" :colorMode="1" @update:saveElement="saveElement" @update:close-element="closeElement" />
     </Transition>
 </template>

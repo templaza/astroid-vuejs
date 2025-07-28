@@ -343,7 +343,7 @@ function toggleCollapse() {
                 <div v-if="props.field.input.options.colorpicker">
                     <div class="form-label">{{ props.field.input.lang.font_color }}</div>
                     <div class="astroid-color">
-                        <div class="row">
+                        <div class="row gx-4">
                             <div v-if="props.colorMode === 1 || props.colorMode === 0" :class="{
                                 'col-4 text-center' : (props.colorMode === 1),
                                 'col-12': (props.colorMode === 0)
@@ -353,7 +353,7 @@ function toggleCollapse() {
                             </div>
                             <div v-if="props.colorMode === 1" class="col text-center py-3">
                                 <div class="btn-group" role="group" aria-label="Copy Color">
-                                    <button class="btn btn-link p-1 link-body-emphasis" @click.prevent="copyColor('dark')"><i class="fa-solid fa-caret-left"></i></button><button class="btn btn-link p-1 link-body-emphasis" @click.prevent="copyColor('light')"><i class="fa-solid fa-caret-right"></i></button>
+                                    <button class="btn btn-link p-1 link-body-emphasis m-0" @click.prevent="copyColor('dark')"><i class="fa-solid fa-caret-left"></i></button><button class="btn btn-link p-1 link-body-emphasis m-0" @click.prevent="copyColor('light')"><i class="fa-solid fa-caret-right"></i></button>
                                 </div>
                             </div>
                             <div v-if="props.colorMode === 1 || props.colorMode === 2" :class="{

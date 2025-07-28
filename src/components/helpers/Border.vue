@@ -97,8 +97,8 @@ watch(border_text, (newText) => {
                 <option value="none">None</option>
             </select>
         </div>
-        <div v-if="data.border_style !== `none`" class="col-6">
-            <div class="row">
+        <div v-if="data.border_style !== `none`" class="col-6 astroid-color">
+            <div class="row gx-4">
                 <div v-if="props.colorMode === 1 || props.colorMode === 0" :class="{
                     'col-4 text-center' : (props.colorMode === 1),
                     'col-12': (props.colorMode === 0)
@@ -108,7 +108,7 @@ watch(border_text, (newText) => {
                 </div>
                 <div v-if="props.colorMode === 1" class="col text-center py-3">
                     <div class="btn-group" role="group" aria-label="Copy Color">
-                        <button class="btn btn-link p-1 link-body-emphasis" @click.prevent="copyColor('dark')"><i class="fa-solid fa-caret-left"></i></button><button class="btn btn-link p-1 link-body-emphasis" @click.prevent="copyColor('light')"><i class="fa-solid fa-caret-right"></i></button>
+                        <button class="btn btn-link p-1 link-body-emphasis m-0" @click.prevent="copyColor('dark')"><i class="fa-solid fa-caret-left"></i></button><button class="btn btn-link p-1 link-body-emphasis m-0" @click.prevent="copyColor('light')"><i class="fa-solid fa-caret-right"></i></button>
                     </div>
                 </div>
                 <div v-if="props.colorMode === 1 || props.colorMode === 2" :class="{

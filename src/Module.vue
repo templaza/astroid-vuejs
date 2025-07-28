@@ -12,7 +12,7 @@ onBeforeMount(()=>{
 })
 </script>
 <template>
-    <Layout v-model="layout" source="joomla_module" :field="{
+    <Layout v-model="layout" source="joomla_module" :colorMode="1" :field="{
                 id: data.id,
                 input: {
                     id: data.id,

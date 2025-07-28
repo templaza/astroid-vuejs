@@ -5,6 +5,11 @@
     .row {
         max-width: 223px;
     }
+    .btn-link {
+        color: transparent;
+        background: none !important;
+        border: none !important;
+    }
 }
 .astroid-color-picker {
     border-radius: 50%;
