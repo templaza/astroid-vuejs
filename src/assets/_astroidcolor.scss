@@ -10,6 +10,9 @@
         background: none !important;
         border: none !important;
     }
+    .fa-solid, .fas {
+        width: initial;
+    }
 }
 .astroid-color-picker {
     border-radius: 50%;
@@ -20,7 +23,6 @@
         color: transparent;
     }
     &.fas {
-        width: initial;
         cursor: pointer;
         background: var(--as-color-background);
         color: transparent;
