@@ -239,7 +239,6 @@ function toggleCollapse() {
             'letter-spacing' : props.modelValue['letter_spacing'][currentDevice]+props.modelValue['letter_spacing_unit'][currentDevice],
             'text-decoration': (props.modelValue['font_style'].find((element) => element === 'underline') !== undefined ? 'underline' : 'none'),
             'font-style': (props.modelValue['font_style'].find((element) => element === 'italic') !== undefined ? 'italic' : 'normal'),
-
             }">
                     {{ fontSelected.text === '' || fontSelected.text === 'Default' ? props.field.input.lang.inherit : fontSelected.text }}
                     <div class="position-absolute top-0 start-100 ms-2 cogIcon" :style="{'font-size' : '0.86rem', 'line-height': '1'}"><i class="fa-solid fa-gear"></i></div>
@@ -247,12 +246,12 @@ function toggleCollapse() {
                 <div class="fontProperties d-flex align-items-center">
                     <div class="fontSize">
                         <div class="form-text mt-0" aria-label="Font Size">{{ props.field.input.lang.font_size }}</div>
-                        <div class="value">{{ props.modelValue['font_size'][currentDevice] !== '' ? props.modelValue['font_size'][currentDevice]+props.modelValue['font_size_unit'][currentDevice] : props.field.input.lang.inherit }}</div>
+                        <div class="value">{{ typeof props.modelValue['font_size'][currentDevice] !== 'undefined' && props.modelValue['font_size'][currentDevice] !== '' ? props.modelValue['font_size'][currentDevice]+props.modelValue['font_size_unit'][currentDevice] : props.field.input.lang.inherit }}</div>
                     </div>
                     <div class="px-3 opacity-50">/</div>
                     <div class="lineHeight">
                         <div class="form-text mt-0" aria-label="Line Height">{{ props.field.input.lang.line_height }}</div>
-                        <div class="value">{{ props.modelValue['line_height'][currentDevice] !== '' ? props.modelValue['line_height'][currentDevice]+props.modelValue['line_height_unit'][currentDevice] : props.field.input.lang.inherit }}</div>
+                        <div class="value">{{ typeof props.modelValue['line_height'][currentDevice] !== 'undefined' && props.modelValue['line_height'][currentDevice] !== '' ? props.modelValue['line_height'][currentDevice]+props.modelValue['line_height_unit'][currentDevice] : props.field.input.lang.inherit }}</div>
                     </div>
                 </div>
             </div>
