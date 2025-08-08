@@ -61,7 +61,7 @@ const _showColorPicker = ref([]);
                 <td><input type="text" class="form-control mw-100" v-model="item.variable"></td>
                 <td>
                     <input v-if="item.color===false" type="text" class="form-control mw-100" v-model="item.value">
-                    <div v-else>
+                    <div v-else class="astroid-color">
                         <i class="fas fa-circle fa-3x border astroid-color-picker" :id="props.field.input.id+`-colorcircle-`+index" :style="{'color': item.value}" @click="_showColorPicker[index] = true"></i>
                         <div v-if="_showColorPicker[index]" class="row">
                             <div class="col-auto">
