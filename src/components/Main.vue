@@ -48,13 +48,16 @@ function backToLayouts() {
     emit('update:saveFinish', true);
 }
 function saveStyle() {
-    const action_link = props.config.astroid_lib.astroid_action.replace(/\&amp\;/g, '&') + '&format=json&' + props.config.astroid_lib.astroid_admin_token + '=1';
+    const action_link = props.config.astroid_lib.astroid_action.replace(/\&amp\;/g, '&') + '&format=json';
     const toastAstroidMsg = document.getElementById('mainMessage');
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-    axios.post(action_link, $scope.value, {
+    const formData = new FormData(); // pass data as a form;
+    formData.append('params', JSON.stringify($scope.value));
+    formData.append(props.config.astroid_lib.astroid_admin_token, 1);
+    axios.post(action_link, formData, {
         headers: {
-            'Content-Type': 'application/json; charset=UTF-8'
-        }
+            "Content-Type": "multipart/form-data",
+        },
     })
         .then((response) => {
             toast_msg.icon = 'fa-solid fa-floppy-disk';
@@ -169,7 +172,12 @@ function selectPreset(event, group) {
     })
     .then((response) => {
       if (response.data.status === 'success') {
-        const tmp = JSON.parse(response.data.data);
+        let tmp = {};
+        if (typeof response.data.data === 'string') {
+            tmp = JSON.parse(response.data.data);
+        } else {
+            tmp = response.data.data;
+        }
         group.fields.forEach(field => {
           if (typeof tmp[field.name] !== 'undefined') {
               $scope.value[field.name] = tmp[field.name]
