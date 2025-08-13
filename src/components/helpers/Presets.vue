@@ -137,12 +137,12 @@ function savePreset() {
     const action_link = constant.astroid_action.replace(/\&amp\;/g, '&')+ '&format=json';
     const toastAstroidMsg = document.getElementById('loadPreset');
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-    const formData = new FormData(); // pass data as a form;
+    const formData = new FormData(document.getElementById('astroid-form')); // pass data as a form;
     formData.append('astroid-preset', 1);
     formData.append('astroid-preset-name', formInfo.title);
     formData.append('astroid-preset-desc', formInfo.description);
-    formData.append('params', JSON.stringify(props.scope));
-    formData.append(constant.astroid_admin_token, 1);
+    // formData.append('params', JSON.stringify(props.scope));
+    // formData.append(constant.astroid_admin_token, 1);
     save_disabled.value = true;
     axios.post(action_link, formData, {
         headers: {

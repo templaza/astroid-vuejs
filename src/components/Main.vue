@@ -51,9 +51,10 @@ function saveStyle() {
     const action_link = props.config.astroid_lib.astroid_action.replace(/\&amp\;/g, '&') + '&format=json';
     const toastAstroidMsg = document.getElementById('mainMessage');
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-    const formData = new FormData(); // pass data as a form;
-    formData.append('params', JSON.stringify($scope.value));
-    formData.append(props.config.astroid_lib.astroid_admin_token, 1);
+    // const formData = new FormData(); // pass data as a form;
+    const formData = new FormData(document.getElementById('astroid-form'));
+    // formData.append('params', JSON.stringify($scope.value));
+    // formData.append(props.config.astroid_lib.astroid_admin_token, 1);
     axios.post(action_link, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
