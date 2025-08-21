@@ -113,7 +113,7 @@ function showColorPicker(id) {
                                     <div class="col-sm-4">
                                         <div class="form-label">{{ props.field.input.lang.astroid_color }}</div>
                                     </div>
-                                    <div class="col-sm-8">
+                                    <div class="col-sm-8 astroid-color">
                                         <i :id="props.field.input.id+`-colorcircle-`+element.id" class="fas fa-circle fa-3x border astroid-color-picker" :style="{'color': element.color}" @click="showColorPicker(element.id)"></i>
                                         <div v-if="_showColorPicker[element.id]" class="row">
                                             <div class="col-auto">
