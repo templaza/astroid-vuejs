@@ -15,14 +15,19 @@ const filterSocial = computed(() => {
     return tmp;
 });
 const list = ref([]);
-onMounted(()=>{
-    list.value = JSON.parse(props.modelValue);
-})
-onUpdated(()=>{
-    if (JSON.stringify(list.value) !== props.modelValue) {
+function isEmpty(val) {
+    return val === '' || val === null || val === undefined;
+}
+
+onMounted(() => {
+    list.value = isEmpty(props.modelValue) ? [] : JSON.parse(props.modelValue);
+});
+
+onUpdated(() => {
+    if (!isEmpty(props.modelValue) && props.modelValue !== JSON.stringify(list.value)) {
         list.value = JSON.parse(props.modelValue);
     }
-})
+});
 const list_text = computed(() => {
   return JSON.stringify(list.value);
 })

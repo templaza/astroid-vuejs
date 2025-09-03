@@ -232,13 +232,13 @@ function toggleCollapse() {
                 <div class="fontName position-relative" :style="
             {
             'font-family' : fontSelected.text,
-            'font-weight': (props.modelValue['font_style'].find((element) => element === 'bold') !== undefined ? 'bold' : props.modelValue['font_weight']),
+            'font-weight': (typeof props.modelValue['font_style'] !== 'undefined' && props.modelValue['font_style'].find((element) => element === 'bold') !== undefined ? 'bold' : props.modelValue['font_weight']),
             'text-transform': props.modelValue['text_transform'],
             'font-size' : props.modelValue['font_size'][currentDevice]+props.modelValue['font_size_unit'][currentDevice],
             'line-height' : props.modelValue['line_height'][currentDevice]+props.modelValue['line_height_unit'][currentDevice],
             'letter-spacing' : props.modelValue['letter_spacing'][currentDevice]+props.modelValue['letter_spacing_unit'][currentDevice],
-            'text-decoration': (props.modelValue['font_style'].find((element) => element === 'underline') !== undefined ? 'underline' : 'none'),
-            'font-style': (props.modelValue['font_style'].find((element) => element === 'italic') !== undefined ? 'italic' : 'normal'),
+            'text-decoration': (typeof props.modelValue['font_style'] !== 'undefined' && props.modelValue['font_style'].find((element) => element === 'underline') !== undefined ? 'underline' : 'none'),
+            'font-style': (typeof props.modelValue['font_style'] !== 'undefined' && props.modelValue['font_style'].find((element) => element === 'italic') !== undefined ? 'italic' : 'normal'),
             }">
                     {{ fontSelected.text === '' || fontSelected.text === 'Default' ? props.field.input.lang.inherit : fontSelected.text }}
                     <div class="position-absolute top-0 start-100 ms-2 cogIcon" :style="{'font-size' : '0.86rem', 'line-height': '1'}"><i class="fa-solid fa-gear"></i></div>
