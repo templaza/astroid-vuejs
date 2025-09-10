@@ -212,7 +212,7 @@ const pro_badge = '<span class="badge text-bg-danger ms-2">PRO</span>';
       <input type="hidden" id="astroid-admin-token" :name="props.config.astroid_lib.astroid_admin_token" value="1" />
       <div class="as-page ps-lg-2" :class="props.pageIndex[fieldSet.name]" v-for="fieldSet in props.config.astroid_content" :key="fieldSet.name">
         <div :id="`astroid-page-`+index" class="as-content" v-if="Object.keys(fieldSet.childs).length > 0" v-for="(group, index) in fieldSet.childs" :key="index" v-show="checkShowGroup(group, fieldSet.name, index)">
-          <h3 v-if="group.title !== ''">{{ group.title }}</h3>
+          <h3 v-if="group.title !== ''">{{ group.title }}<a v-if="group.help !== ``" class="link-secondary" :href="group.help" title="Help" target="_blank"><i class="fa-solid fa-circle-question fa-sm ms-2"></i></a></h3>
           <p v-if="group.description !== ''">{{ group.description }}</p>
           <div class="input-group mb-3" v-if="group.preset !== `none`">
             <label :for="`preset_`+fieldSet.name+`_`+index" class="input-group-text">Load default configure</label>
