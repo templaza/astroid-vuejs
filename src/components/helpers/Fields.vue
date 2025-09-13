@@ -250,6 +250,9 @@ function removeDynamicField() {
     <div v-else-if="props.field.input.type === `dynamiccontent`" class="astroid-dynamic-content">
         <DynamicContent v-model="props.scope[props.field.name]" :field="props.field" />
     </div>
+    <select v-else-if="props.field.input.type === `astroidsql`" v-model="props.scope[props.field.name]" :id="props.field.input.id" :name="props.field.input.name" class="astroid-sql form-select" :aria-label="props.field.label">
+        <option v-for="option in props.field.input.options" :key="option.value" :value="option.value">{{ option.text }}</option>
+    </select>
     <div v-else-if="props.field.input.type === `astroidgetpro`" class="astroid-get-pro card alert alert-warning mb-0">
         <AstroidGetPro :field="props.field" />
     </div>
