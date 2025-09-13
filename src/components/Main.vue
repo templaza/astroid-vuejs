@@ -10,11 +10,12 @@ const props = defineProps({
     saveState: { type: Boolean, default: false }
 });
 
-const $scope = ref(new Object());
-const astroidcontentlayouts = ref(new Object());
+const $scope = ref({});
+const joomlaFields = ref([]);
+const astroidcontentlayouts = ref({});
 const constant  =   inject('constant', {});
 let action_link = '';
-const updatePreset = ref(new Object());
+const updatePreset = ref({});
 const mainLayout_saved = ref(true);
 let saveWarning = {
   title: 'Layouts not saved',
@@ -26,8 +27,12 @@ onBeforeMount(() => {
   props.config.astroid_content.forEach((fieldSet, idx) => {
     Object.keys(fieldSet.childs).forEach(key => {
       fieldSet.childs[key].fields.forEach(field => {
-        $scope.value[field.name] = field.value;
-        updatePreset.value[field.name] = false;
+          if (field.type === 'json') {
+              $scope.value[field.name] = field.value;
+              updatePreset.value[field.name] = false;
+          } else {
+              joomlaFields.value.push(field.name);
+          }
       });
     });
   });
@@ -53,6 +58,20 @@ function saveStyle() {
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
     const formData = new FormData(); // pass data as a form;
     // const formData = new FormData(document.getElementById('astroid-form'));
+    joomlaFields.value.forEach(field => {
+        if (typeof $scope.value[field] === 'undefined') {
+            const el = document.getElementById('params_'+field);
+            if (el) {
+                if (el.type === 'checkbox') {
+                    $scope.value[field] = (el.checked ? 1 : 0);
+                } else {
+                    $scope.value[field] = el.value;
+                }
+            } else {
+                $scope.value[field] = '';
+            }
+        }
+    });
     formData.append('params', JSON.stringify($scope.value));
     formData.append(props.config.astroid_lib.astroid_admin_token, 1);
     axios.post(action_link, formData, {
