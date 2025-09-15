@@ -420,7 +420,7 @@ function exportLayout() {
 <template>
     <div>
         <div class="astroid-layout px-2">
-            <h6>Layouts:</h6>
+            <h6>Layouts:<a v-if="props.field.help !== ``" class="link-secondary" :href="props.field.help" title="Help" target="_blank"><i class="fa-solid fa-circle-question fa-sm ms-1"></i></a></h6>
             <div class="layout-toolbar card card-body">
                 <div class="row row-cols-auto g-2">
                     <div v-for="item in items">
