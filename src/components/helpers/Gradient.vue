@@ -69,7 +69,7 @@ const getGradientStyle = computed(() => {
         <div class="gradient" :style="{'background': getGradientStyle}"></div>
     </div>
     <div class="color-picker mb-3">
-        <div class="row" style="max-width: 210px;">
+        <div class="astroid-color row" style="max-width: 210px;">
             <div class="col-4 text-center">
                 <i class="border astroid-color-picker fas fa-circle fa-3x" :id="props.field.input.id+`-colorcircle-start`" :style="{'color': gradient.start}" @click="showColorPicker('start')"></i>
             </div>
