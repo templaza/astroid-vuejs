@@ -32,6 +32,7 @@ const toast_msg = reactive({
 const save_disabled = ref(false);
 const files = ref(null);
 const checklist = ref([]);
+const ajaxloading = ref(false);
 
 onBeforeMount(() => {
     if (props.modelValue !== '') {
@@ -122,6 +123,7 @@ function editLayout(filename = '') {
             selected_layout.value = filename;
             return true;
         }
+        ajaxloading.value = true;
         let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
         if (process.env.NODE_ENV === 'development') {
             url = "editlayout_ajax.txt?ts="+Date.now();
@@ -158,6 +160,7 @@ function editLayout(filename = '') {
                     } else {
                         formInfo.default = false;
                     }
+                    ajaxloading.value = false;
                 }
             })
             .catch((err) => {
@@ -442,7 +445,8 @@ function exportLayout() {
                     </div>
                 </div>
             </div>
-            <Layout v-model="layout" source="root" :presetUpdated="reloadLayout" :colorMode="props.colorMode" @update:Preset="state => (reloadLayout = state)" @update:subLayouts="emit('update:subLayouts')" :field="{
+            <div class="position-relative">
+                <Layout v-model="layout" source="root" :presetUpdated="reloadLayout" :colorMode="props.colorMode" @update:Preset="state => (reloadLayout = state)" @update:subLayouts="emit('update:subLayouts')" :field="{
                 id: props.field.id,
                 input: {
                     id: props.field.input.id,
@@ -450,6 +454,11 @@ function exportLayout() {
                     value: JSON.parse(layout)
                 }
             }" />
+                <div v-if="ajaxloading" class="loading-frame position-absolute top-0 start-0 bottom-0 end-0 bg-body d-flex justify-content-center align-items-center flex-column" style="--bs-bg-opacity: .8;">
+                    <i class="fa-solid fa-basketball fa-bounce fa-3x" style="--fa-bounce-land-scale-x: 1.2;--fa-bounce-land-scale-y: .8;--fa-bounce-rebound: 5px;"></i>
+                    <div class="fa-beat-fade mt-3" style="--fa-beat-fade-opacity: 0.1; --fa-beat-fade-scale: 1.05;">Loading...</div>
+                </div>
+            </div>
             <div class="modal fade" :id="props.field.input.id+`_saveLayout`" tabindex="-1" :aria-labelledby="props.field.input.id+`saveLayoutLabel`" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">

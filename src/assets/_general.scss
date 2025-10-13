@@ -176,6 +176,10 @@ svg:not(:root).svg-inline--fa, svg:not(:host).svg-inline--fa {
     }
 }
 
+.loading-frame {
+  z-index: 10;
+}
+
 .loading {
     padding: 150px 0;
 }
