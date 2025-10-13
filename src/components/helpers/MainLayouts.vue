@@ -498,7 +498,7 @@ function exportLayout() {
                 <a v-if="formInfo.name !== `` && formInfo.name !== props.modelValue" href="#" class="btn btn-sm btn-as btn-as-light me-2" @click.prevent="markAsDefault()" :disabled="save_disabled">Mark as Default</a>
                 <a v-if="formInfo.name !== ``" href="#" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_saveLayout`" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_EDIT_INFO }}</a>
                 <a v-if="formInfo.name !== props.modelValue" href="#" @click.prevent="loadDefault()" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_LOAD_DEFAULT_SETTINGS }}</a>
-                <div v-if="formInfo.name !== ``" class="btn-group" role="group" aria-label="Basic example">
+                <div v-if="formInfo.name !== ``" class="btn-group" role="group" aria-label="Import / Export">
                     <button type="button" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_importLayout`" class="btn btn-sm btn-as btn-as-light" :disabled="save_disabled"><i class="fa-solid fa-file-import me-2"></i>Import</button>
                     <button type="button" @click.prevent="exportLayout()" class="btn btn-sm btn-as btn-as-light" :disabled="save_disabled"><i class="fa-solid fa-file-export me-2"></i>Export</button>
                 </div>

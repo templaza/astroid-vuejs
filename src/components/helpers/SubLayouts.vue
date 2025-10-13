@@ -229,6 +229,53 @@ function deleteLayout() {
     }
 }
 
+function importLayout() {
+    if (files.value === null || files.value.length === 0) {
+        alert('You have to select a JSON file to import.');
+        return true;
+    }
+    const file = files.value[0];
+    if (file.type !== 'application/json') {
+        alert('You have to select a valid JSON file to import.');
+        return true;
+    }
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        try {
+            const data = JSON.parse(event.target.result);
+            reloadLayout.value = true;
+            layout.value = JSON.stringify(data.data);
+            formInfo.title = data.title || '';
+            formInfo.desc = data.desc || '';
+            formInfo.thumbnail = data.thumbnail || '';
+            files.value = null;
+            document.getElementById(props.field.input.id+`_importLayout_file`).value = '';
+            document.getElementById(props.field.input.id+`_importLayout_close`).click();
+        } catch (e) {
+            alert('Invalid JSON file format.');
+        }
+    };
+    reader.readAsText(file);
+}
+function exportLayout() {
+    const dataStr = JSON.stringify({
+        title: formInfo.title,
+        desc: formInfo.desc,
+        thumbnail: '',
+        data: JSON.parse(layout.value)
+    }, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (formInfo.name || 'layout') + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    return true;
+}
+
 function callAjax() {
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayouts&type="+props.type+"&template="+constant.tpl_template_name+"&ts="+Date.now();
     if (process.env.NODE_ENV === 'development') {
@@ -339,7 +386,33 @@ function checkAllList() {
                 <a href="#" @click.prevent="saveLayout('save')" class="btn btn-sm btn-as btn-primary me-2" :disabled="save_disabled" v-html="language.JSAVE"></a>
                 <a v-if="formInfo.name !== ``" href="#" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_saveLayout`" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_EDIT_INFO }}</a>
                 <a v-if="props.type === `article_layouts` && formInfo.name !== `default`" href="#" @click.prevent="loadDefault()" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_LOAD_DEFAULT_SETTINGS }}</a>
+                <div class="btn-group me-2" role="group" aria-label="Import / Export">
+                    <button type="button" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_importLayout`" class="btn btn-sm btn-as btn-as-light" :disabled="save_disabled"><i class="fa-solid fa-file-import me-2"></i>Import</button>
+                    <button v-if="formInfo.name !== ``" type="button" @click.prevent="exportLayout()" class="btn btn-sm btn-as btn-as-light" :disabled="save_disabled"><i class="fa-solid fa-file-export me-2"></i>Export</button>
+                </div>
                 <a href="#" @click.prevent="cancelLayout()" class="btn btn-sm btn-as btn-as-light" :disabled="save_disabled">{{ language.JCANCEL }}</a>
+            </div>
+            <div class="modal fade" :id="props.field.input.id+`_importLayout`" tabindex="-1" :aria-labelledby="props.field.input.id+`importLayoutLabel`" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title fs-5" :id="props.field.input.id+`_importLayoutLabel`">Import</h3>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" :id="props.field.input.id+`_importLayout_close`"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div>
+                                <div class="mb-3">
+                                    <label :for="props.field.input.id+`_importLayout_file`" class="form-label">Click to select JSON file</label>
+                                    <input class="form-control" type="file" @change="onFileChange" :id="props.field.input.id+`_importLayout_file`">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-sm btn-as btn-as-light" data-bs-dismiss="modal" aria-label="Close" :disabled="save_disabled">{{ language.ASTROID_BACK }}</button>
+                            <button type="button" class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="importLayout('save_dialog')" :disabled="save_disabled" v-html="language.JSAVE"></button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="toast-container position-fixed bottom-0 end-0 p-3">
