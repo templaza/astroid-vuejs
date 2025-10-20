@@ -154,18 +154,18 @@ function removeDynamicField() {
         <option v-for="option in props.field.input.options" :key="option.value" :value="option.value">{{ option.text }}</option>
     </select>
     <div v-else-if="props.field.input.type === `astroidradio`" class="astroid-radio">
-        <div v-if="props.field.input.role === `default`" class="astroid-btn-group" :class="{'full' : props.field.input.width === 'full'}" role="group" :aria-label="props.field.label">
-            <span v-for="(option, idx) in props.field.input.options" :key="idx">
-                <input type="radio" class="btn-check" v-model="props.scope[props.field.name]" :name="props.field.input.name" :id="props.field.input.id+idx" :value="option.value" autocomplete="off">
-                <label class="btn btn-sm btn-as btn-outline-primary btn-as-outline-primary" :for="props.field.input.id+idx" v-html="option.text"></label>
-            </span>
-        </div>
-        <SwitchBox v-else-if="props.field.input.role === `switch`" v-model="props.scope[props.field.name]" :field="props.field" :presetUpdated="props.presetUpdated" @update:Preset="state => (emit('update:presetState', state))" />
+        <SwitchBox v-if="props.field.input.role === `switch`" v-model="props.scope[props.field.name]" :field="props.field" :presetUpdated="props.presetUpdated" @update:Preset="state => (emit('update:presetState', state))" />
         <div v-else-if="props.field.input.role === `image`" class="radio-image row g-2">
             <div v-for="(option, idx) in props.field.input.options" :key="idx" class="col col-auto">
                 <input type="radio" class="btn-check" v-model="props.scope[props.field.name]" :name="props.field.input.name" :id="props.field.input.id+idx" :value="option.value" autocomplete="off">
                 <label class="btn btn-outline-light btn-outline-image" :for="props.field.input.id+idx"><img :src="constant.site_url+option.text" width="150" /></label>
             </div>
+        </div>
+        <div v-else class="astroid-btn-group" :class="{'full' : props.field.input.width === 'full'}" role="group" :aria-label="props.field.label">
+            <span v-for="(option, idx) in props.field.input.options" :key="idx">
+                <input type="radio" class="btn-check" v-model="props.scope[props.field.name]" :name="props.field.input.name" :id="props.field.input.id+idx" :value="option.value" autocomplete="off">
+                <label class="btn btn-sm btn-as btn-outline-primary btn-as-outline-primary" :for="props.field.input.id+idx" v-html="option.text"></label>
+            </span>
         </div>
     </div>
     <div v-else-if="props.field.input.type === `astroidcolor`" class="astroid-color">
@@ -241,13 +241,13 @@ function removeDynamicField() {
     <div v-else-if="props.field.input.type === `astroidborder`" class="astroid-border">
         <Border v-model="props.scope[props.field.name]" :field="props.field" :colorMode="getColorMode()" />
     </div>
-    <div v-else-if="props.field.input.type === `layouts`" class="astroid-layouts">
+    <div v-else-if="props.field.input.type === `astroidlayouts`" class="astroid-layouts">
         <SubLayouts v-model="props.scope[props.field.name]" :field="props.field" :colorMode="getColorMode()" :type="props.field.input.category" />
     </div>
-    <div v-else-if="props.field.input.type === `mainlayouts`" class="astroid-main-layouts">
+    <div v-else-if="props.field.input.type === `astroidmainlayouts`" class="astroid-main-layouts">
         <MainLayouts v-model="props.scope[props.field.name]" :field="props.field" :colorMode="getColorMode()" :presetUpdated="props.presetUpdated" @update:Preset="state => (emit('update:presetState', state))" @update:layoutSaved="state => (emit('update:mainLayoutState', state))" @update:subLayouts="updateSubLayouts" />
     </div>
-    <div v-else-if="props.field.input.type === `dynamiccontent`" class="astroid-dynamic-content">
+    <div v-else-if="props.field.input.type === `astroiddynamiccontent`" class="astroid-dynamic-content">
         <DynamicContent v-model="props.scope[props.field.name]" :field="props.field" />
     </div>
     <select v-else-if="props.field.input.type === `astroidsql`" v-model="props.scope[props.field.name]" :id="props.field.input.id" :name="props.field.input.name" class="astroid-sql form-select" :aria-label="props.field.label">

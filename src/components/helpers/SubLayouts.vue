@@ -375,7 +375,7 @@ function checkAllList() {
                         <div class="modal-footer">
                             <button v-if="formInfo.name !== `` && !formInfo.default" type="button" class="btn btn-sm btn-as btn-primary btn-as-primary" data-bs-dismiss="modal" aria-label="Close" :disabled="save_disabled" v-html="language.JAPPLY"></button>
                             <button v-if="formInfo.name === `` || formInfo.default" type="button" class="btn btn-sm btn-as btn-as-light" data-bs-dismiss="modal" aria-label="Close" :disabled="save_disabled">{{ language.ASTROID_BACK }}</button>
-                            <button v-if="formInfo.name === `` || formInfo.default" type="button" class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="saveLayout('save_dialog')" :disabled="save_disabled" v-html="language.JSAVE"></button>
+                            <button v-if="formInfo.name === `` || formInfo.default" type="button" class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="saveLayout('save_dialog')" :disabled="save_disabled" v-html="language.JSAVEANDCLOSE"></button>
                         </div>
                     </div>
                 </div>
@@ -383,7 +383,7 @@ function checkAllList() {
             <div class="as-sublayout-bottom-toolbox sticky-bottom bg-body-tertiary px-4 py-3 border border-bottom-0 rounded-top-3 mt-5">
                 <button :id="props.field.input.id+`_saveLayout_opendialog`" class="d-none" type="button" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_saveLayout`">Open Dialog</button>
                 <a v-if="formInfo.name !== ``" href="#" @click.prevent="saveLayout('apply')" class="btn btn-sm btn-as btn-as-primary me-2" :disabled="save_disabled">{{ language.JAPPLY }}</a>
-                <a href="#" @click.prevent="saveLayout('save')" class="btn btn-sm btn-as btn-primary me-2" :disabled="save_disabled" v-html="language.JSAVE"></a>
+                <a href="#" @click.prevent="saveLayout('save')" class="btn btn-sm btn-as btn-primary me-2" :disabled="save_disabled" v-html="language.JSAVEANDCLOSE"></a>
                 <a v-if="formInfo.name !== ``" href="#" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_saveLayout`" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_EDIT_INFO }}</a>
                 <a v-if="props.type === `article_layouts` && formInfo.name !== `default`" href="#" @click.prevent="loadDefault()" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_LOAD_DEFAULT_SETTINGS }}</a>
                 <div class="btn-group me-2" role="group" aria-label="Import / Export">
@@ -409,7 +409,7 @@ function checkAllList() {
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-sm btn-as btn-as-light" data-bs-dismiss="modal" aria-label="Close" :disabled="save_disabled">{{ language.ASTROID_BACK }}</button>
-                            <button type="button" class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="importLayout('save_dialog')" :disabled="save_disabled" v-html="language.JSAVE"></button>
+                            <button type="button" class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="importLayout('save_dialog')" :disabled="save_disabled" v-html="language.JSAVEANDCLOSE"></button>
                         </div>
                     </div>
                 </div>

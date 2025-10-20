@@ -9,6 +9,7 @@ const props = defineProps({
   modelValue: { type: String, default: '' },
 });
 const constant = inject('constant', {});
+const language  =   inject('language', []);
 
 const _showMediaContent = ref([]);
 const _showDirLocation  = ref([]);
@@ -89,7 +90,11 @@ function generateData(json = null) {
 }
 
 function callAjax() {
-    let url = props.field.input.ajax+"&action=library&asset=com_templates&ts="+Date.now();
+    let query = '/index.php?option=com_ajax&astroid=media&action=library&asset=com_templates&ts='+Date.now();
+    if (constant.cms_name === 'moodle') {
+        query = `/local/moon/ajax/media.php?filearea=${props.field.input.media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
+    }
+    let url = constant.base_url + query;
     if (process.env.NODE_ENV === 'development') {
         url = "media_ajax.txt?ts="+Date.now();
     }
@@ -253,11 +258,11 @@ function remove(item) {
         <input type="text" class="form-control" :value="modelValue" @input="emit('update:modelValue', $event.target.value)" aria-label="URL" :aria-describedby="props.field.input.id+`url`">
     </div>
     <div v-if="_imagePreview === ''" class="astroid-media-selector">
-      <button class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`modal`">{{ props.field.input.lang['select_media'] }}</button>
+      <button class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`modal`">{{ language['TPL_ASTROID_SELECT_' + props.field.input.media.toUpperCase()]  }}</button>
     </div>
     <div v-else="_imagePreview !== ''" class="astroid-media-selector btn-group" role="group">
-        <button class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`modal`">{{ props.field.input.lang['change_media'] }}</button>
-        <button class="btn btn-sm btn-as btn-as-light" @click.prevent="clearMedia">{{ props.field.input.lang['clear'] }}</button>
+        <button class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`modal`">{{ language['TPL_ASTROID_CHANGE_' + props.field.input.media.toUpperCase()] }}</button>
+        <button class="btn btn-sm btn-as btn-as-light" @click.prevent="clearMedia">{{ language.ASTROID_CLEAR }}</button>
     </div>
     <div class="modal fade" :id="props.field.input.id+`modal`" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
