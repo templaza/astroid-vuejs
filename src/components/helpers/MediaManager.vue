@@ -39,7 +39,7 @@ function updatePreview() {
     if (props.modelValue.search(/https*:\/\//i) !== -1) {
         _imagePreview.value = props.modelValue;
     } else if (props.modelValue !== '') {
-        _imagePreview.value = constant.site_url + props.field.input.mediaPath + '/'+ props.modelValue;
+        _imagePreview.value = constant.cms_name === `moodle` ? props.modelValue : constant.site_url + props.field.input.mediaPath + '/'+ props.modelValue;
     }
 }
 
@@ -71,7 +71,7 @@ function generateData(json = null) {
         id: 'image'+id,
         name: element.name,
         path_relative: element.path_relative,
-        path: constant.site_url + props.field.input.mediaPath + '/' + element.path_relative,
+        path: constant.cms_name === `moodle` ? element.path_relative : constant.site_url + props.field.input.mediaPath + '/' + element.path_relative,
         type: 'image'
       })
     });
@@ -82,7 +82,7 @@ function generateData(json = null) {
         id: 'video'+id,
         name: element.name,
         path_relative: element.path_relative,
-        path: constant.site_url + props.field.input.mediaPath + '/' + element.path_relative,
+        path: constant.cms_name === `moodle` ? element.path_relative : constant.site_url + props.field.input.mediaPath + '/' + element.path_relative,
         type: 'video'
       })
     });
@@ -92,7 +92,7 @@ function generateData(json = null) {
 function callAjax() {
     let query = '/index.php?option=com_ajax&astroid=media&action=library&asset=com_templates&ts='+Date.now();
     if (constant.cms_name === 'moodle') {
-        query = `/local/moon/ajax/media.php?filearea=${props.field.input.media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        query = `/local/moon/ajax/media.php?theme=${constant.template_name}&task=list&filearea=${props.field.input.media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
     }
     let url = constant.base_url + query;
     if (process.env.NODE_ENV === 'development') {
@@ -120,7 +120,7 @@ function callAjax() {
 function selectMedia(item) {
   let dirLocation = _showDirLocation.value.join('/');
   if (item.type === 'image' || item.type === 'video') {
-    _imagePreview.value = constant.site_url + props.field.input.mediaPath + '/' + item.path_relative;
+    _imagePreview.value = constant.cms_name === `moodle` ? item.path_relative : constant.site_url + props.field.input.mediaPath + '/' + item.path_relative;
     emit('update:modelValue', item.path_relative);
     document.getElementById(props.field.input.id+'close').click();
   }
@@ -189,9 +189,17 @@ function createFolder() {
         return false;
     }
     let url = constant.site_url+`administrator/index.php?option=com_ajax&astroid=media&action=createFolder&ts=`+Date.now();
+    if (constant.cms_name === `moodle`) {
+        url = constant.site_url + `/local/moon/ajax/media.php?theme=${constant.template_name}&task=folder&filearea=${props.field.input.media}&itemid=0&sesskey=${constant.astroid_admin_token}`
+    }
     const formData = new FormData(); // pass data as a form
     formData.append("name", newFolderName.value.trim());
-    formData.append("dir", 'images/'+_currentFolder.value);
+    if (constant.cms_name === `moodle`) {
+        formData.append("dir", _currentFolder.value);
+    } else {
+        formData.append("dir", 'images/'+_currentFolder.value);
+    }
+
     formData.append(constant.astroid_admin_token, 1);
     axios.post(url, formData, {
         headers: {
@@ -214,7 +222,12 @@ function rename() {
     formData.append("name", oldFolderName.name);
     formData.append("type", oldFolderName.type);
     formData.append("new_name", newFolderName.value.trim());
-    formData.append("dir", 'images/'+_currentFolder.value);
+    if (constant.cms_name === `moodle`) {
+        url = constant.site_url + `/local/moon/ajax/media.php?theme=${constant.template_name}&task=rename&filearea=${props.field.input.media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        formData.append("dir", _currentFolder.value);
+    } else {
+        formData.append("dir", 'images/'+_currentFolder.value);
+    }
     formData.append(constant.astroid_admin_token, 1);
     axios.post(url, formData, {
         headers: {
@@ -235,7 +248,12 @@ function remove(item) {
     const formData = new FormData(); // pass data as a form
     formData.append("name", item.name);
     formData.append("type", item.type);
-    formData.append("dir", 'images/'+_currentFolder.value);
+    if (constant.cms_name === `moodle`) {
+        url = constant.site_url + `/local/moon/ajax/media.php?theme=${constant.template_name}&task=delete&filearea=${props.field.input.media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        formData.append("dir", _currentFolder.value);
+    } else {
+        formData.append("dir", 'images/'+_currentFolder.value);
+    }
     formData.append(constant.astroid_admin_token, 1);
     axios.post(url, formData, {
         headers: {
@@ -294,7 +312,7 @@ function remove(item) {
                     </div>
                     <div v-else>
                       <DropZone 
-                        :url="props.field.input.ajax+`&action=upload&media=`+props.field.input.media+`&dir=images/`+_currentFolder" 
+                        :url="constant.cms_name === `moodle` ? constant.base_url+`/local/moon/ajax/media.php?theme=${constant.template_name}&task=upload&filearea=${props.field.input.media}&itemid=0&folder=${_currentFolder}&sesskey=${constant.astroid_admin_token}` : props.field.input.ajax+`&action=upload&media=`+props.field.input.media+`&dir=images/`+_currentFolder"
                         :click-upload="_clickUpload"
                         @update:media="uploadReset" />
                     </div>
