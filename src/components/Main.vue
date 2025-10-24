@@ -53,7 +53,7 @@ function backToLayouts() {
     emit('update:saveFinish', true);
 }
 function saveStyle() {
-    const action_link = props.config.astroid_lib.astroid_action.replace(/\&amp\;/g, '&') + '&format=json';
+    const action_link = props.config.astroid_lib.astroid_action.replace(/\&amp\;/g, '&');
     const toastAstroidMsg = document.getElementById('mainMessage');
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
     const formData = new FormData(); // pass data as a form;
@@ -73,7 +73,12 @@ function saveStyle() {
         }
     });
     formData.append('params', JSON.stringify($scope.value));
-    formData.append(props.config.astroid_lib.astroid_admin_token, 1);
+    if (constant.cms_name === `moodle`) {
+        formData.append('theme', constant.template_name);
+        formData.append('sesskey', props.config.astroid_lib.astroid_admin_token);
+    } else {
+        formData.append(props.config.astroid_lib.astroid_admin_token, 1);
+    }
     axios.post(action_link, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
