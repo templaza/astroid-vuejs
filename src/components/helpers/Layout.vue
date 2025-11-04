@@ -12,7 +12,8 @@ const props = defineProps({
     field: { type: Object, default: null },
     colorMode: { default: 0 },
     source: { type: String, default: 'root' },
-    presetUpdated: { type: Boolean, default: false }
+    presetUpdated: { type: Boolean, default: false },
+    layoutType: { type: String, default: '' }
 });
 const constant  =   inject('constant', {});
 const language  =   inject('language', []);
@@ -425,7 +426,7 @@ function saveSublayout() {
         @save:Sublayout="openSaveLayout"
         />
     <Transition name="fade">
-        <Modal v-if="_showModal" :element="element" :form="form_template[element.type]" :colorMode="props.colorMode" @update:saveElement="saveElement" @update:close-element="closeElement" />
+        <Modal v-if="_showModal" :element="element" :form="form_template[element.type]" :colorMode="props.colorMode" :layoutType="props.layoutType" @update:saveElement="saveElement" @update:close-element="closeElement" />
     </Transition>
     <Transition name="fade">
         <SelectElement v-if="_showElement" :form="form_template" :type="select_element_type" :system="system" :source="props.source" @update:close-element="_showElement = false" @update:selectElement="addElement" />

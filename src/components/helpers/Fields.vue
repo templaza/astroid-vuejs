@@ -27,12 +27,14 @@ import SwitchBox from "./SwitchBox.vue";
 import Text from "./Text.vue";
 import DynamicContent from "./DynamicContent.vue";
 import AstroidGetPro from "./AstroidGetPro.vue";
+import Regions from "./Regions.vue";
 
 const emit = defineEmits(['update:contentlayout', 'update:loadPreset', 'update:getPreset', 'update:subFormState', 'update:presetState', 'update:mainLayoutState']);
 const props = defineProps({
     field: { type: Object, default: null },
     scope: { type: Object, default: null },
     colorMode: { type: Number, default: 0 },
+    layoutType: { type: String, default: '' },
     presetUpdated: {type: Boolean, default: false},
     actSave: {type: Boolean, default: false}
 });
@@ -253,6 +255,9 @@ function removeDynamicField() {
     <select v-else-if="props.field.input.type === `astroidsql`" v-model="props.scope[props.field.name]" :id="props.field.input.id" :name="props.field.input.name" class="astroid-sql form-select" :aria-label="props.field.label">
         <option v-for="option in props.field.input.options" :key="option.value" :value="option.value">{{ option.text }}</option>
     </select>
+    <div v-else-if="props.field.input.type === `astroidregions`" class="astroid-regions">
+        <Regions v-model="props.scope[props.field.name]" :field="props.field" :layoutType="props.layoutType" />
+    </div>
     <div v-else-if="props.field.input.type === `astroidgetpro`" class="astroid-get-pro card alert alert-warning mb-0">
         <AstroidGetPro :field="props.field" />
     </div>

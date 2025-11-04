@@ -21,6 +21,7 @@ const formInfo = reactive({
     desc: '',
     thumbnail: '',
     name: '',
+    layout: 'custom',
     default: false
 });
 const toast_msg = reactive({
@@ -113,6 +114,9 @@ function editLayout(filename = '') {
             formInfo.title = layouts.value[filename].title;
             formInfo.desc = layouts.value[filename].desc;
             formInfo.thumbnail = layouts.value[filename].thumbnail;
+            if (constant.cms_name === 'moodle') {
+                formInfo.layout = layouts.value[filename].layout ?? 'custom';
+            }
             formInfo.name = filename;
             if (filename === props.modelValue) {
                 default_layout.value = layouts.value[filename].data;
@@ -157,6 +161,10 @@ function editLayout(filename = '') {
                         data: response.data.data.data,
                         status: 'first_load'
                     };
+                    if (constant.cms_name === 'moodle') {
+                        formInfo.layout = response.data.data.layout;
+                        layouts.value[filename].layout = response.data.data.layout;
+                    }
                     if (filename === props.modelValue) {
                         default_layout.value = response.data.data.data;
                         formInfo.default = true;
@@ -199,11 +207,12 @@ function saveLayout(action = 'save') {
         }
         return true;
     }
+    const formData = new FormData(); // pass data as a form
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
     if (constant.cms_name === 'moodle') {
         url = constant.site_url+`/local/moon/ajax/layout.php?theme=${constant.template_name}&task=savelayout&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        formData.append('layout', formInfo.layout);
     }
-    const formData = new FormData(); // pass data as a form
     const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
     formData.append(constant.astroid_admin_token, 1);
@@ -234,21 +243,26 @@ function saveLayout(action = 'save') {
                 toast_msg.body = 'You can use it to display your website.';
                 toast_msg.color = 'green';
                 save_disabled.value = false;
-                layouts.value[response.data.data] = {
-                    title: formInfo.title,
-                    desc: formInfo.desc,
-                    thumbnail: formInfo.thumbnail,
+                layouts.value[response.data.data.name] = {
+                    title: response.data.data.title,
+                    desc: response.data.data.desc,
+                    thumbnail: response.data.data.thumbnail,
+                    layout: formInfo.layout,
                     data: layout.value,
                     status: 'saved'
                 };
+                formInfo.name = response.data.data.name;
+                if (response.data.data.thumbnail !== '') {
+                    formInfo.thumbnail = response.data.data.thumbnail;
+                }
                 emit('update:layoutSaved', true);
-                selected_layout.value = response.data.data;
+                selected_layout.value = response.data.data.name;
                 if (formInfo.default) {
-                    emit('update:modelValue', response.data.data);
+                    emit('update:modelValue', response.data.data.name);
                     default_layout.value = layout.value;
                 }
                 Object.keys(layouts.value).forEach(key => {
-                    if (key !== response.data.data && layouts.value[key].status === 'updated') {
+                    if (key !== response.data.data.name && layouts.value[key].status === 'updated') {
                         emit('update:layoutSaved', false);
                     }
                 });
@@ -274,6 +288,7 @@ function resetFormInfo(isDefault = false) {
     formInfo.desc = '';
     formInfo.thumbnail = '';
     formInfo.name = '';
+    formInfo.layout = 'custom';
     formInfo.default = isDefault;
     files.value = null;
 }
@@ -333,6 +348,7 @@ function deleteLayout() {
 function isJsonString(str) {
     return /^\s*(\{.*\}|\[.*\])\s*$/.test(str);
 }
+const selectedLayouts = ref([]);
 function callAjax() {
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayouts&type=main_layouts&template="+constant.tpl_template_name+"&ts="+Date.now();
     if (constant.cms_name === 'moodle') {
@@ -366,6 +382,13 @@ function callAjax() {
                                 }, 500
                             )
                         }
+                    }
+                    if (constant.cms_name === 'moodle') {
+                        response.data.data.forEach(item => {
+                            if (typeof item.layout !== 'undefined' && item.layout !== 'custom') {
+                                selectedLayouts.value.push(item.layout);
+                            }
+                        });
                     }
                 }
             }
@@ -431,6 +454,12 @@ function exportLayout() {
     URL.revokeObjectURL(url);
     return true;
 }
+
+function typeChange() {
+    if (formInfo.layout !== 'custom') {
+        formInfo.title = constant.layouts[formInfo.layout];
+    }
+}
 </script>
 <template>
     <div>
@@ -458,7 +487,7 @@ function exportLayout() {
                 </div>
             </div>
             <div class="position-relative">
-                <Layout v-model="layout" source="root" :presetUpdated="reloadLayout" :colorMode="props.colorMode" @update:Preset="state => (reloadLayout = state)" @update:subLayouts="emit('update:subLayouts')" :field="{
+                <Layout v-model="layout" source="root" :presetUpdated="reloadLayout" :colorMode="props.colorMode" :layoutType="formInfo.layout" @update:Preset="state => (reloadLayout = state)" @update:subLayouts="emit('update:subLayouts')" :field="{
                 id: props.field.id,
                 input: {
                     id: props.field.input.id,
@@ -480,16 +509,22 @@ function exportLayout() {
                         </div>
                         <div class="modal-body">
                             <div>
+                                <div v-if="constant.cms_name === `moodle`" class="mb-3">
+                                    <label :for="props.field.input.id+`_saveLayout_type`" class="form-label">{{ language.type }}</label>
+                                    <select class="form-select" v-model="formInfo.layout" @change="typeChange()" :id="props.field.input.id+`_saveLayout_type`">
+                                        <option v-for="(text, value) in constant.layouts" :value="value" :disabled="selectedLayouts.includes(value) && (selected_layout === `` || (typeof layouts[selected_layout] !== `undefined` && typeof layouts[selected_layout].layout !== `undefined` && layouts[selected_layout].layout !== value))">{{text}}</option>
+                                    </select>
+                                </div>
                                 <div class="mb-3">
                                     <label :for="props.field.input.id+`_saveLayout_title`" class="form-label">{{ language.JGLOBAL_TITLE }}</label>
-                                    <input type="text" v-model="formInfo.title" class="form-control" :id="props.field.input.id+`_saveLayout_title`" ref="_formTitle" placeholder="Title" required>
+                                    <input type="text" v-model="formInfo.title" class="form-control" :id="props.field.input.id+`_saveLayout_title`" ref="_formTitle" placeholder="Title" :disabled="constant.cms_name === `moodle` && formInfo.layout !== `custom`" required>
                                 </div>
                                 <div class="mb-3">
                                     <label :for="props.field.input.id+`_saveLayout_desc`" class="form-label">{{ language.JGLOBAL_DESCRIPTION }}</label>
                                     <textarea class="form-control" v-model="formInfo.desc" :id="props.field.input.id+`_saveLayout_desc`" rows="3"></textarea>
                                 </div>
                                 <div v-if="formInfo.thumbnail !== ``" class="mb-3">
-                                    <img class="img-thumbnail" :src="constant.site_url + `/media/templates/site/` + constant.tpl_template_name + `/images/layouts/` + formInfo.thumbnail" :alt="formInfo.title">
+                                    <img class="img-thumbnail" :src="(constant.cms_name === `moodle` ? formInfo.thumbnail : constant.site_url + `media/templates/site/` + constant.tpl_template_name + `/images/main_layouts/` + formInfo.thumbnail)" :alt="formInfo.title">
                                 </div>
                                 <div class="mb-3">
                                     <label :for="props.field.input.id+`_saveLayout_thumbnail`" class="form-label">{{ language.TPL_ASTROID_SELECT_YOUR_THUMBNAIL }}</label>
