@@ -130,7 +130,7 @@ function editLayout(filename = '') {
         ajaxloading.value = true;
         let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
         if (constant.cms_name === 'moodle') {
-            url = constant.site_url+`/local/moon/ajax/layout.php?theme=${constant.template_name}&task=getlayout&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+            url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayout&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
         }
         if (process.env.NODE_ENV === 'development') {
             url = "editlayout_ajax.txt?ts="+Date.now();
@@ -210,7 +210,7 @@ function saveLayout(action = 'save') {
     const formData = new FormData(); // pass data as a form
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
     if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/layout.php?theme=${constant.template_name}&task=savelayout&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=savelayout&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
         formData.append('layout', formInfo.layout);
     }
     const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
@@ -301,7 +301,7 @@ function deleteLayout() {
     if (confirm(language.JGLOBAL_CONFIRM_DELETE) && checklist.value.length) {
         let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=deletelayouts&ts="+Date.now();
         if (constant.cms_name === 'moodle') {
-            url = constant.site_url+`/local/moon/ajax/layout.php?theme=${constant.template_name}&task=deletelayouts&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+            url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=deletelayouts&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
         }
         const formData = new FormData(); // pass data as a form
         const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
@@ -352,7 +352,7 @@ const selectedLayouts = ref([]);
 function callAjax() {
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayouts&type=main_layouts&template="+constant.tpl_template_name+"&ts="+Date.now();
     if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/layout.php?theme=${constant.template_name}&task=getlayouts&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayouts&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
     }
     if (process.env.NODE_ENV === 'development') {
         url = "layout_ajax.txt?ts="+Date.now();

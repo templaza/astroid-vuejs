@@ -60,7 +60,7 @@ onMounted(()=> {
 function getSublayouts() {
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayouts&template="+constant.tpl_template_name+"&ts="+Date.now();
     if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/layout.php?theme=${constant.template_name}&task=getlayouts&filearea=layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayouts&filearea=layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
     }
     if (process.env.NODE_ENV === 'development') {
         url = "layout_ajax.txt?ts="+Date.now();

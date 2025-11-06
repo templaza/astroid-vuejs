@@ -45,6 +45,9 @@ onBeforeMount(()=>{
         if (props.scope[props.field.name] === '') {
             props.scope[props.field.name] = new Object();
         }
+        if (typeof props.scope[props.field.name] === 'string' && isJsonString(props.scope[props.field.name])) {
+            props.scope[props.field.name] = JSON.parse(props.scope[props.field.name]);
+        }
         Object.keys(props.field.input.value).forEach(key => {
             if (typeof props.scope[props.field.name][key] === 'undefined') {
                 props.scope[props.field.name][key] = props.field.input.value[key];
@@ -57,6 +60,10 @@ onBeforeMount(()=>{
 onUpdated(()=>{
     updateContentLayout();
 })
+
+function isJsonString(str) {
+    return /^\s*(\{.*\}|\[.*\])\s*$/.test(str);
+}
 
 function getColorMode() {
     return typeof props.scope['astroid_color_mode_enable'] !== `undefined` ? parseInt(props.scope['astroid_color_mode_enable']) : props.colorMode;

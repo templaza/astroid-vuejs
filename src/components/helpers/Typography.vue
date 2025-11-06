@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUpdated, onUnmounted, ref, watch, inject, reactive } from 'vue';
+import {onMounted, onUpdated, onUnmounted, ref, watch, inject, reactive} from 'vue';
 import axios from "axios";
 import { ModelListSelect } from "vue-search-select"
 import TypoResponsive from './TypoResponsive.vue';
@@ -73,6 +73,9 @@ function getFontType(font_face) {
 
 onMounted(()=>{
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=google-fonts&template="+constant.template_name+"&ts="+Date.now();
+    if (constant.cms_name === 'moodle') {
+        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getfonts&filearea=fonts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+    }
     if (process.env.NODE_ENV === 'development') {
         url = "fonts_ajax.txt?ts="+Date.now();
     }
@@ -99,7 +102,6 @@ onMounted(()=>{
         // handle error
         console.log(error);
     });
-
     if (props.modelValue['font_color'].trim() !== '') {
         try {
             const tmp = JSON.parse(props.modelValue['font_color']);
