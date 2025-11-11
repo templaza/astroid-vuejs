@@ -56,6 +56,12 @@ onBeforeMount(()=>{
 onUpdated(()=>{
     if (props.presetUpdated === true) {
         emit('update:Preset', false);
+        system.value    =   {};
+        Object.keys(constant.form_template).forEach(key => {
+            if (!constant.form_template[key].info.multiple) {
+                system.value[constant.form_template[key].info.type] = true;
+            }
+        })
         const tmp = JSON.parse(props.modelValue);
         layout.value.sections = tmp.sections;
         if (typeof tmp.devices !== 'undefined') {

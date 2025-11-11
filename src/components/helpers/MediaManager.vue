@@ -15,7 +15,7 @@ const _showMediaContent = ref([]);
 const _showDirLocation  = ref([]);
 const _currentFolder    = ref('');
 const _imagePreview     = ref('');
-
+const _media = typeof props.field.input.media !== `undefined` ? props.field.input.media : 'images';
 onMounted(() => {
     if (props.modelValue !== '') {
         updatePreview();
@@ -65,7 +65,7 @@ function generateData(json = null) {
       type: 'folder'
     })
   });
-  if (props.field.input.media === 'images') {
+  if (_media === 'images') {
     json.images.forEach((element,id) => {
       _showMediaContent.value.push({
         id: 'image'+id,
@@ -76,7 +76,7 @@ function generateData(json = null) {
       })
     });
   }
-  if (props.field.input.media === 'videos') {
+  if (_media === 'videos') {
     json.videos.forEach((element,id) => {
       _showMediaContent.value.push({
         id: 'video'+id,
@@ -92,7 +92,7 @@ function generateData(json = null) {
 function callAjax() {
     let query = '/index.php?option=com_ajax&astroid=media&action=library&asset=com_templates&ts='+Date.now();
     if (constant.cms_name === 'moodle') {
-        query = `/local/moon/ajax/action.php?theme=${constant.template_name}&task=list&filearea=${props.field.input.media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        query = `/local/moon/ajax/action.php?theme=${constant.template_name}&task=list&filearea=${_media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
     }
     let url = constant.base_url + query;
     if (process.env.NODE_ENV === 'development') {
@@ -190,7 +190,7 @@ function createFolder() {
     }
     let url = constant.site_url+`administrator/index.php?option=com_ajax&astroid=media&action=createFolder&ts=`+Date.now();
     if (constant.cms_name === `moodle`) {
-        url = constant.site_url + `/local/moon/ajax/action.php?theme=${constant.template_name}&task=folder&filearea=${props.field.input.media}&itemid=0&sesskey=${constant.astroid_admin_token}`
+        url = constant.site_url + `/local/moon/ajax/action.php?theme=${constant.template_name}&task=folder&filearea=${_media}&itemid=0&sesskey=${constant.astroid_admin_token}`
     }
     const formData = new FormData(); // pass data as a form
     formData.append("name", newFolderName.value.trim());
@@ -223,7 +223,7 @@ function rename() {
     formData.append("type", oldFolderName.type);
     formData.append("new_name", newFolderName.value.trim());
     if (constant.cms_name === `moodle`) {
-        url = constant.site_url + `/local/moon/ajax/action.php?theme=${constant.template_name}&task=rename&filearea=${props.field.input.media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        url = constant.site_url + `/local/moon/ajax/action.php?theme=${constant.template_name}&task=rename&filearea=${_media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
         formData.append("dir", _currentFolder.value);
     } else {
         formData.append("dir", 'images/'+_currentFolder.value);
@@ -249,7 +249,7 @@ function remove(item) {
     formData.append("name", item.name);
     formData.append("type", item.type);
     if (constant.cms_name === `moodle`) {
-        url = constant.site_url + `/local/moon/ajax/action.php?theme=${constant.template_name}&task=delete&filearea=${props.field.input.media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        url = constant.site_url + `/local/moon/ajax/action.php?theme=${constant.template_name}&task=delete&filearea=${_media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
         formData.append("dir", _currentFolder.value);
     } else {
         formData.append("dir", 'images/'+_currentFolder.value);
@@ -268,7 +268,7 @@ function remove(item) {
 </script>
 <template>
     <div v-if="_imagePreview !== ''" class="image-preview mb-3">
-      <i v-if="props.field.input.media === 'videos'" class="fa-solid fa-video fa-3x"></i>
+      <i v-if="_media === 'videos'" class="fa-solid fa-video fa-3x"></i>
       <img v-else :src="_imagePreview" :alt="props.field.name" />
     </div>
     <div class="input-group input-group-sm mb-3">
@@ -276,10 +276,10 @@ function remove(item) {
         <input type="text" class="form-control" :value="modelValue" @input="emit('update:modelValue', $event.target.value)" aria-label="URL" :aria-describedby="props.field.input.id+`url`">
     </div>
     <div v-if="_imagePreview === ''" class="astroid-media-selector">
-      <button class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`modal`">{{ language['TPL_ASTROID_SELECT_' + props.field.input.media.toUpperCase()]  }}</button>
+      <button class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`modal`">{{ language['TPL_ASTROID_SELECT_' + _media.toUpperCase()]  }}</button>
     </div>
     <div v-else="_imagePreview !== ''" class="astroid-media-selector btn-group" role="group">
-        <button class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`modal`">{{ language['TPL_ASTROID_CHANGE_' + props.field.input.media.toUpperCase()] }}</button>
+        <button class="btn btn-sm btn-as btn-primary btn-as-primary" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`modal`">{{ language['TPL_ASTROID_CHANGE_' + _media.toUpperCase()] }}</button>
         <button class="btn btn-sm btn-as btn-as-light" @click.prevent="clearMedia">{{ language.ASTROID_CLEAR }}</button>
     </div>
     <div class="modal fade" :id="props.field.input.id+`modal`" tabindex="-1">
@@ -312,7 +312,7 @@ function remove(item) {
                     </div>
                     <div v-else>
                       <DropZone 
-                        :url="constant.cms_name === `moodle` ? constant.base_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=upload&filearea=${props.field.input.media}&itemid=0&folder=${_currentFolder}&sesskey=${constant.astroid_admin_token}` : props.field.input.ajax+`&action=upload&media=`+props.field.input.media+`&dir=images/`+_currentFolder"
+                        :url="constant.cms_name === `moodle` ? constant.base_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=upload&filearea=${_media}&itemid=0&folder=${_currentFolder}&sesskey=${constant.astroid_admin_token}` : props.field.input.ajax+`&action=upload&media=`+_media+`&dir=images/`+_currentFolder"
                         :click-upload="_clickUpload"
                         @update:media="uploadReset" />
                     </div>
