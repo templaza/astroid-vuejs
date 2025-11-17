@@ -49,7 +49,7 @@ onUpdated(()=>{
     }
 })
 function backToLayouts() {
-    emit('update:switchPage', 'astroid_layout', 'layout_group');
+    emit('update:switchPage', (constant.cms_name === 'moodle' ? 'layout' : 'astroid_layout'), 'layout_group');
     emit('update:saveFinish', true);
 }
 function saveStyle() {
