@@ -71,7 +71,7 @@ function getColorMode() {
 
 // Update state for Astroid Content Layout
 function updateContentLayout() {
-    if (props.field.input.type === `astroidmodulesposition`) {
+    if (props.field.input.type === `astroidmodulesposition` || props.field.input.type === `astroidregions`) {
         if (typeof props.field.input.astroid_content_layout !== 'undefined' && props.field.input.astroid_content_layout !== '') {
             emit('update:contentlayout', props.field.name, {'astroid_content_layout': props.field.input.astroid_content_layout, 'module_position': props.scope[props.field.name]});
         }

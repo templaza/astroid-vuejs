@@ -56,7 +56,11 @@ function clearCache() {
   const toastAstroidMsg = document.getElementById('astroidMessage');
   const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
   cache_icon.value = 'fa-sync fa-spin';
-  axios.get(props.config.astroid_lib.base_url+'/index.php?option=com_ajax&astroid=clear-cache&template='+props.config.astroid_lib.template_name)
+  let url = props.config.astroid_lib.base_url+'/index.php?option=com_ajax&astroid=clear-cache&template='+props.config.astroid_lib.template_name;
+  if (constant.cms_name === 'moodle') {
+      url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=clearCache&sesskey=${constant.astroid_admin_token}`;
+  }
+  axios.get(url)
   .then(function (response) {
     if (response.data.status === 'success') {
       toast_msg.icon  = 'fa-solid fa-eraser';
@@ -64,19 +68,23 @@ function clearCache() {
       toast_msg.body = response.data.data.message;
       toast_msg.color = 'darkviolet';
       toastBootstrap.show();
-      axios.get(props.config.astroid_lib.base_url+'/index.php?option=com_ajax&astroid=clear-joomla-cache')
-      .then(function (response) {
-        if (response.data.status === 'success') {
+      if (constant.cms_name === 'joomla') {
+          axios.get(props.config.astroid_lib.base_url+'/index.php?option=com_ajax&astroid=clear-joomla-cache')
+              .then(function (response) {
+                  if (response.data.status === 'success') {
+                      cache_icon.value = 'fa-eraser';
+                      toast_msg.header= 'Joomla Clear Cache';
+                      toast_msg.body = response.data.data.message;
+                      toastBootstrap.show();
+                  }
+              })
+              .catch(function (error) {
+                  // handle error
+                  console.log(error);
+              });
+      } else {
           cache_icon.value = 'fa-eraser';
-          toast_msg.header= 'Joomla Clear Cache';
-          toast_msg.body = response.data.data.message;
-          toastBootstrap.show();
-        }
-      })
-      .catch(function (error) {
-        // handle error
-        console.log(error);
-      });
+      }
     }
   })
   .catch(function (error) {

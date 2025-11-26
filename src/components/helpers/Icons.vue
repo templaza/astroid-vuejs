@@ -1,9 +1,10 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import {computed, inject, onMounted, ref} from 'vue';
 import axios from "axios";
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps(['modelValue', 'field']);
+const constant  =   inject('constant', {});
 const btnIcon = ref('Select Icon');
 const icons = ref([]);
 const searchText = ref('');
@@ -25,6 +26,9 @@ const showIcons = computed(()=>{
 
 onMounted(()=>{
     let url = "index.php?option=com_ajax&astroid=search&format=html&search=icon&source="+props.field.input.source+"&ts="+Date.now();
+    if (constant.cms_name === 'moodle') {
+        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getIcons&source=${props.field.input.source}&filearea=${props.field.input.source}_icon&itemid=0&sesskey=${constant.astroid_admin_token}`;
+    }
     if (process.env.NODE_ENV === 'development') {
         url = "icon_ajax.txt?ts="+Date.now();
     }

@@ -16,7 +16,7 @@ onBeforeMount(()=>{
     if (props.modelValue) {
         items.value = JSON.parse(props.modelValue);
     }
-    itemLabel.value = props.field.input.form.index !== '' ? props.field.input.form.index : 'title';
+    itemLabel.value = typeof props.field.input.form.index !== 'undefined' && props.field.input.form.index !== '' ? props.field.input.form.index : 'title';
 })
 
 onUpdated(() => {
