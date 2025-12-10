@@ -324,6 +324,9 @@ function onFileChange(e) {
 }
 function saveSublayout() {
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
+    if (constant.cms_name === 'moodle') {
+        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=savelayout&filearea=layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+    }
     if (!formInfo.title) {
         alert('You have to input the Title')
         _subFormTitle.value.focus();

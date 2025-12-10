@@ -41,6 +41,7 @@ onBeforeMount(() => {
             layout.value = props.modelValue;
             default_layout.value = props.modelValue;
             resetFormInfo(true);
+            editItem.value = true;
         }
     } else {
         layout.value = props.field.input.value;
@@ -88,12 +89,14 @@ watch(layout, (newText) => {
     }
     if (selected_layout.value !== '' && newText !== layouts.value[selected_layout.value].data) {
         layouts.value[selected_layout.value].data = newText;
-        if (layouts.value[selected_layout.value].status === 'first_load') {
-            layouts.value[selected_layout.value].status = 'loaded';
-        } else {
-            layouts.value[selected_layout.value].status = 'updated';
-            emit('update:layoutSaved', false);
-        }
+        // if (layouts.value[selected_layout.value].status === 'first_load') {
+        //     layouts.value[selected_layout.value].status = 'loaded';
+        // } else {
+        //     layouts.value[selected_layout.value].status = 'updated';
+        //     emit('update:layoutSaved', false);
+        // }
+        layouts.value[selected_layout.value].status = 'updated';
+        emit('update:layoutSaved', false);
     }
 })
 
@@ -125,6 +128,7 @@ function editLayout(filename = '') {
                 formInfo.default = false;
             }
             selected_layout.value = filename;
+            editItem.value = true;
             return true;
         }
         ajaxloading.value = true;
@@ -172,6 +176,7 @@ function editLayout(filename = '') {
                         formInfo.default = false;
                     }
                     ajaxloading.value = false;
+                    editItem.value = true;
                 }
             })
             .catch((err) => {
@@ -181,10 +186,12 @@ function editLayout(filename = '') {
         reloadLayout.value = true;
         resetValues();
         selected_layout.value = '';
+        editItem.value = true;
     }
 }
 
 const reloadLayout = ref(false);
+const editItem = ref(false);
 function loadDefault() {
     if (!confirm('Are you sure? This will reset your current layout.')) {
         return true;
@@ -294,10 +301,14 @@ function resetFormInfo(isDefault = false) {
 }
 
 function resetValues() {
+    selected_layout.value = '';
     layout.value = default_layout.value;
     resetFormInfo();
 }
-function deleteLayout() {
+function deleteLayout(item = null) {
+    if (item !== null) {
+        checklist.value = [item.name];
+    }
     if (confirm(language.JGLOBAL_CONFIRM_DELETE) && checklist.value.length) {
         let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=deletelayouts&ts="+Date.now();
         if (constant.cms_name === 'moodle') {
@@ -365,7 +376,7 @@ function callAjax() {
                 if (response.data.data.length > 0) {
                     if (props.modelValue === '') {
                         emit('update:modelValue', response.data.data[0].name);
-                        editLayout(response.data.data[0].name);
+                        // editLayout(response.data.data[0].name);
                     } else {
                         if (!isJsonString(props.modelValue) && selected_layout.value === '') {
                             const found = response.data.data.find(item => item.name === props.modelValue);
@@ -374,10 +385,10 @@ function callAjax() {
                                     if (!found) {
                                         emit('update:modelValue', response.data.data[0].name);
                                         selected_layout.value = response.data.data[0].name;
-                                        editLayout(response.data.data[0].name);
+                                        // editLayout(response.data.data[0].name);
                                     } else {
                                         selected_layout.value = props.modelValue;
-                                        editLayout(props.modelValue);
+                                        // editLayout(props.modelValue);
                                     }
                                 }, 500
                             )
@@ -436,6 +447,24 @@ function importLayout() {
     };
     reader.readAsText(file);
 }
+function cancelLayout() {
+    let flag = true;
+    Object.keys(layouts.value).every(key => {
+        if (layouts.value[key].status === `updated`) {
+            if (!confirm('You have unsaved changes in layout '+layouts.value[key].title+'. Are you sure to discard changes?')) {
+                flag = false;
+            }
+            return false;
+        }
+        return true;
+    })
+    if (flag) {
+        editItem.value = false;
+        resetValues();
+        layouts.value = {};
+        callAjax();
+    }
+}
 function exportLayout() {
     const dataStr = JSON.stringify({
         title: formInfo.title,
@@ -460,10 +489,65 @@ function typeChange() {
         formInfo.title = constant.layouts[formInfo.layout];
     }
 }
+
+const checkAll = ref(false);
+function checkAllList() {
+    checklist.value = [];
+    if (!checkAll.value) {
+        items.value.forEach(element => {
+            checklist.value.push(element.name);
+        });
+    }
+}
+function isSystemLayout(name) {
+    return Object.prototype.hasOwnProperty.call(constant.layouts, name);
+}
 </script>
 <template>
     <div>
-        <div class="astroid-layout px-2">
+        <div class="astroid-layout" v-if="editItem === false">
+            <div v-if="items.length === 0">
+                <div class="alert alert-info" role="alert">{{ language.TPL_ASTROID_NO_LAYOUT_INFO }}</div>
+            </div>
+            <table v-else class="table table-hover">
+                <thead>
+                <tr>
+                    <th scope="col" width="1%"><input class="form-check-input" type="checkbox" value="" v-model="checkAll" @click="checkAllList"></th>
+                    <th scope="col">{{ language.JGLOBAL_TITLE }}</th>
+                    <th scope="col">{{ language.JGLOBAL_DESCRIPTION }}</th>
+                    <th scope="col">{{ language.JDEFAULT }}</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(item, index) in items" class="astroid-element">
+                    <td scope="row"><input class="form-check-input" type="checkbox" :value="item.name" v-model="checklist"></td>
+                    <td class="d-flex">
+                        <a href="#" :title="`Edit: ` + item.title" class="link-body-emphasis link-offset-2 link-underline-opacity-0 link-underline-opacity-75-hover" @click.prevent="editLayout(item.name)">{{ item.title }}</a>
+                        <div class="element-toolbar d-flex align-items-center">
+                            <ul class="nav">
+                                <li class="nav-item">
+                                    <a class="nav-link py-0 ps-3 pe-1" href="#" title="Edit Element" @click.prevent="editLayout(item.name)"><i class="fas fa-edit"></i></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link py-0 px-1" :href="constant.root_url + `local/moon/page.php?id=` + item.name" title="Copy page url" target="_blank"><i class="fas fa-link"></i></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link py-0 pe-0 ps-1" href="#" @click.prevent="deleteLayout(item)" title="Remove Element"><i class="fas fa-trash-alt"></i></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                    <td>{{ item.desc }}</td>
+                    <td><a v-if="isSystemLayout(item.name)" :class="{'link-secondary':item.name !== props.modelValue, 'link-warning':item.name === props.modelValue}" href="#" @click.prevent="markAsDefault(item.name)"><i class="fa-solid fa-star"></i></a></td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="as-sublayout-bottom-toolbox sticky-bottom bg-body-tertiary px-4 py-3 border border-bottom-0 rounded-top-3 mt-5">
+                <a href="#" @click.prevent="editLayout()" class="btn btn-sm btn-as btn-as-primary me-2">{{ language.TPL_ASTROID_NEW_LAYOUT }}</a>
+                <a href="#" @click.prevent="deleteLayout()" class="btn btn-sm btn-as btn-outline-danger">{{ language.TPL_ASTROID_DELETE_LAYOUT }}</a>
+            </div>
+        </div>
+        <div v-else class="astroid-layout px-2">
             <h6>Layouts:<a v-if="props.field.help !== ``" class="link-secondary" :href="props.field.help" title="Help" target="_blank"><i class="fa-solid fa-circle-question fa-sm ms-1"></i></a></h6>
             <div class="layout-toolbar card card-body">
                 <div class="row row-cols-auto g-2">
@@ -477,7 +561,7 @@ function typeChange() {
                                             : `<span class='position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-success z-1 p-1'><span class='visually-hidden'>saved layout</span></span>`)
                                         : ``)"></button>
                             <button v-if="item.name !== props.modelValue" type="button" class="btn btn-sm" :class="{'btn-as-outline-primary': item.name === selected_layout, 'btn-as-light': item.name !== selected_layout}" @click.prevent="markAsDefault(item.name)" v-html="`<i class='fa-solid fa-star fa-xs'></i>`"></button>
-                            <button v-if="item.name !== props.modelValue" type="button" class="btn btn-sm" :class="{'btn-as-outline-primary': item.name === selected_layout, 'btn-as-light': item.name !== selected_layout}" @click.prevent="checklist = [item.name]; deleteLayout()" v-html="`<i class='fa-solid fa-times'></i>`"></button>
+                            <button v-if="item.name !== props.modelValue" type="button" class="btn btn-sm" :class="{'btn-as-outline-primary': item.name === selected_layout, 'btn-as-light': item.name !== selected_layout}" @click.prevent="deleteLayout(item)" v-html="`<i class='fa-solid fa-times'></i>`"></button>
                         </div>
                     </div>
                     <div>
@@ -545,10 +629,11 @@ function typeChange() {
                 <a v-if="formInfo.name !== `` && formInfo.name !== props.modelValue" href="#" class="btn btn-sm btn-as btn-as-light me-2" @click.prevent="markAsDefault()" :disabled="save_disabled">Mark as Default</a>
                 <a v-if="formInfo.name !== ``" href="#" @click.prevent="" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_saveLayout`" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_EDIT_INFO }}</a>
                 <a v-if="formInfo.name !== props.modelValue" href="#" @click.prevent="loadDefault()" class="btn btn-sm btn-as btn-as-light me-2" :disabled="save_disabled">{{ language.TPL_ASTROID_LOAD_DEFAULT_SETTINGS }}</a>
-                <div v-if="formInfo.name !== ``" class="btn-group" role="group" aria-label="Import / Export">
+                <div v-if="formInfo.name !== ``" class="btn-group me-2" role="group" aria-label="Import / Export">
                     <button type="button" data-bs-toggle="modal" :data-bs-target="`#`+props.field.input.id+`_importLayout`" class="btn btn-sm btn-as btn-as-light" :disabled="save_disabled"><i class="fa-solid fa-file-import me-2"></i>Import</button>
                     <button type="button" @click.prevent="exportLayout()" class="btn btn-sm btn-as btn-as-light" :disabled="save_disabled"><i class="fa-solid fa-file-export me-2"></i>Export</button>
                 </div>
+                <a href="#" @click.prevent="cancelLayout()" class="btn btn-sm btn-as btn-as-light" :disabled="save_disabled">{{ language.ASTROID_TEMPLATE_CLOSE }}</a>
             </div>
             <div class="modal fade" :id="props.field.input.id+`_importLayout`" tabindex="-1" :aria-labelledby="props.field.input.id+`importLayoutLabel`" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">

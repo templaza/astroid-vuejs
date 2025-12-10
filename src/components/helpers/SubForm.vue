@@ -14,7 +14,14 @@ const element_id = ref(props.field.input.id);
 onBeforeMount(()=>{
     element_id.value += '-'+(Date.now() * 1000 + Math.random() * 1000).toString(16).replace(/\./g, "").padEnd(14, "0")+Math.trunc(Math.random() * 100000000);
     if (props.modelValue) {
-        items.value = JSON.parse(props.modelValue);
+        if (typeof props.modelValue === 'string') {
+            items.value = JSON.parse(props.modelValue);
+        } else {
+            items.value = props.modelValue;
+            emit('update:modelValue', JSON.stringify(props.modelValue));
+        }
+    } else {
+        items.value = typeof props.field.input.value === 'string' ? JSON.parse(props.field.input.value) : props.field.input.value;
     }
     itemLabel.value = typeof props.field.input.form.index !== 'undefined' && props.field.input.form.index !== '' ? props.field.input.form.index : 'title';
 })

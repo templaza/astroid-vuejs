@@ -44,6 +44,9 @@ onUpdated(()=>{
 function editLayout(filename = '') {
     if (filename !== '') {
         let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
+        if (constant.cms_name === 'moodle') {
+            url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayout&filearea=${props.type}&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        }
         if (process.env.NODE_ENV === 'development') {
             url = "editlayout_ajax.txt?ts="+Date.now();
         }
@@ -78,6 +81,9 @@ function editLayout(filename = '') {
 const reloadLayout = ref(false);
 function loadDefault() {
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
+    if (constant.cms_name === 'moodle') {
+        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayout&filearea=${props.type}&itemid=0&sesskey=${constant.astroid_admin_token}`;
+    }
     if (process.env.NODE_ENV === 'development') {
         url = "editlayout_ajax.txt?ts="+Date.now();
     }
@@ -121,6 +127,9 @@ function saveLayout(action = 'save') {
         }
     }
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
+    if (constant.cms_name === 'moodle') {
+        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=savelayout&filearea=${props.type}&itemid=0&sesskey=${constant.astroid_admin_token}`;
+    }
     const formData = new FormData(); // pass data as a form
     const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
@@ -192,6 +201,9 @@ function cancelLayout() {
 function deleteLayout() {
     if (confirm(language.JGLOBAL_CONFIRM_DELETE) && checklist.value.length) {
         let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=deletelayouts&ts="+Date.now();
+        if (constant.cms_name === 'moodle') {
+            url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=deletelayouts&filearea=${props.type}&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        }
         const formData = new FormData(); // pass data as a form
         const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
         const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);

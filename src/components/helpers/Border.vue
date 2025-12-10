@@ -1,6 +1,7 @@
 <script setup>
 import {onBeforeMount, ref, computed, onMounted, inject, watch, onUnmounted} from 'vue';
 import { ColorPicker } from 'vue-color-kit'
+import Spacing from "@/components/helpers/Spacing.vue";
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps(['modelValue', 'field', 'colorMode']);
@@ -84,8 +85,14 @@ watch(border_text, (newText) => {
 <template>
     <div class="row g-3">
         <div v-if="data.border_style !== `none`" class="col-12">
-            <label :for="props.field.input.id + `_border_width`" class="form-label">{{ data.border_width }}px</label>
-            <input v-model="data.border_width" type="range" class="form-range" min="1" max="50" step="1" :id="props.field.input.id + `_border_width`">
+            <label class="form-label">Width</label>
+            <Spacing v-model="data.border_width" :field="{
+                id: props.field.id,
+                input: {
+                    id: props.field.input.id + '_border_width',
+                    name: props.field.input.name + '[border_width]',
+                }
+            }" />
         </div>
         <div :class="{'col-6' : data.border_style !== `none`, 'col-12' : data.border_style === `none`}">
             <label class="form-label" :for="props.field.input.id + `_border_style`">Border Style</label>
