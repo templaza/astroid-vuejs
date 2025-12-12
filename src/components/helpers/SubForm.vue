@@ -21,7 +21,9 @@ onBeforeMount(()=>{
             emit('update:modelValue', JSON.stringify(props.modelValue));
         }
     } else {
-        items.value = typeof props.field.input.value === 'string' ? JSON.parse(props.field.input.value) : props.field.input.value;
+        if (typeof props.field.input.value !== 'undefined') {
+            items.value = typeof props.field.input.value === 'string' ? JSON.parse(props.field.input.value) : props.field.input.value;
+        }
     }
     itemLabel.value = typeof props.field.input.form.index !== 'undefined' && props.field.input.form.index !== '' ? props.field.input.form.index : 'title';
 })

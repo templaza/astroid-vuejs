@@ -448,22 +448,9 @@ function importLayout() {
     reader.readAsText(file);
 }
 function cancelLayout() {
-    let flag = true;
-    Object.keys(layouts.value).every(key => {
-        if (layouts.value[key].status === `updated`) {
-            if (!confirm('You have unsaved changes in layout '+layouts.value[key].title+'. Are you sure to discard changes?')) {
-                flag = false;
-            }
-            return false;
-        }
-        return true;
-    })
-    if (flag) {
-        editItem.value = false;
-        resetValues();
-        layouts.value = {};
-        callAjax();
-    }
+    editItem.value = false;
+    resetValues();
+    callAjax();
 }
 function exportLayout() {
     const dataStr = JSON.stringify({
@@ -522,14 +509,14 @@ function isSystemLayout(name) {
                 <tr v-for="(item, index) in items" class="astroid-element">
                     <td scope="row"><input class="form-check-input" type="checkbox" :value="item.name" v-model="checklist"></td>
                     <td class="d-flex">
-                        <a href="#" :title="`Edit: ` + item.title" class="link-body-emphasis link-offset-2 link-underline-opacity-0 link-underline-opacity-75-hover" @click.prevent="editLayout(item.name)">{{ item.title }}</a>
+                        <a href="#" :title="`Edit: ` + item.title" class="link-body-emphasis link-offset-2 link-underline-opacity-0 link-underline-opacity-75-hover" @click.prevent="editLayout(item.name)" v-html="(typeof layouts[item.name] !== 'undefined' && layouts[item.name].status === `updated` ? item.title + '<span class=\'badge text-bg-warning ms-2\'>'+language.ASTROID_DRAFT+'</span>' : item.title)"></a>
                         <div class="element-toolbar d-flex align-items-center">
                             <ul class="nav">
                                 <li class="nav-item">
                                     <a class="nav-link py-0 ps-3 pe-1" href="#" title="Edit Element" @click.prevent="editLayout(item.name)"><i class="fas fa-edit"></i></a>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link py-0 px-1" :href="constant.root_url + `local/moon/page.php?id=` + item.name" title="Copy page url" target="_blank"><i class="fas fa-link"></i></a>
+                                <li v-if="constant.cms_name === `moodle`" class="nav-item">
+                                    <a class="nav-link py-0 px-1" :href="constant.root_url + `local/moon/page.php?id=` + item.name" title="Page url" target="_blank"><i class="fas fa-link"></i></a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link py-0 pe-0 ps-1" href="#" @click.prevent="deleteLayout(item)" title="Remove Element"><i class="fas fa-trash-alt"></i></a>
