@@ -487,6 +487,7 @@ function checkAllList() {
     }
 }
 function isSystemLayout(name) {
+    if (constant.cms_name === `joomla`) return true;
     return Object.prototype.hasOwnProperty.call(constant.layouts, name);
 }
 </script>
