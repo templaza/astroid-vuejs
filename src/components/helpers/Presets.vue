@@ -17,8 +17,22 @@ const toast_msg = reactive({
 const list = ref([]);
 const key_bg = ['#ffcdd2','#e1bee7','#bbdefb','#b2dfdb','#ffcc80'];
 onBeforeMount(() => {
-    list.value = props.field.input.value;
-    emit('update:getPreset', props.field.input.value);
+    if (constant.cms_name === `moodle`) {
+        const url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getPresets&sesskey=${constant.astroid_admin_token}`;
+        axios.get(url).then(function (response) {
+            if (response.data.status === 'success') {
+                list.value = response.data.data;
+                emit('update:getPreset', response.data.data);
+            }
+        }).catch(function (error) {
+            // handle error
+            console.log(error);
+        });
+    }
+    else {
+        list.value = props.field.input.value;
+        emit('update:getPreset', props.field.input.value);
+    }
 })
 
 onMounted(()=>{
@@ -33,15 +47,23 @@ function loadPreset(preset) {
         const toastAstroidMsg = document.getElementById('loadPreset');
         const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
         let url = 'index.php?t='+Math.random().toString(36).substring(7);
+        if (constant.cms_name === `moodle`) {
+            url = constant.site_url+`/local/moon/ajax/action.php?sesskey=${constant.astroid_admin_token}`;
+        }
         if (process.env.NODE_ENV === 'development') {
             url = "preset_ajax.txt?ts="+Date.now();
         }
         const formData = new FormData(); // pass data as a form
         formData.append(constant.astroid_admin_token, 1);
         formData.append('name', preset.name);
-        formData.append('astroid', 'loadpreset');
-        formData.append('option', 'com_ajax');
-        formData.append('template', constant.tpl_template_name);
+        if (constant.cms_name === `moodle`) {
+            formData.append('task', 'loadPreset');
+            formData.append('theme', constant.tpl_template_name);
+        } else {
+            formData.append('astroid', 'loadpreset');
+            formData.append('option', 'com_ajax');
+            formData.append('template', constant.tpl_template_name);
+        }
         axios.post(url, formData, {
             headers: {
             "Content-Type": "multipart/form-data",
@@ -74,15 +96,23 @@ function deletePreset(index) {
         const toastAstroidMsg = document.getElementById('loadPreset');
         const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
         let url = 'index.php?t='+Math.random().toString(36).substring(7);
+        if (constant.cms_name === 'moodle') {
+            url = constant.site_url+`/local/moon/ajax/action.php?sesskey=${constant.astroid_admin_token}`;
+        }
         if (process.env.NODE_ENV === 'development') {
             url = "preset_ajax.txt?ts="+Date.now();
         }
         const formData = new FormData(); // pass data as a form
         formData.append(constant.astroid_admin_token, 1);
         formData.append('name', list.value[index].name);
-        formData.append('astroid', 'removepreset');
-        formData.append('option', 'com_ajax');
-        formData.append('template', constant.tpl_template_name);
+        if (constant.cms_name === 'moodle') {
+            formData.append('task', 'deletePreset');
+            formData.append('theme', constant.tpl_template_name);
+        } else {
+            formData.append('astroid', 'removepreset');
+            formData.append('option', 'com_ajax');
+            formData.append('template', constant.tpl_template_name);
+        }
         axios.post(url, formData, {
             headers: {
             "Content-Type": "multipart/form-data",
@@ -134,7 +164,7 @@ function savePreset() {
         presetTitle.value.focus();
         return false;
     }
-    const action_link = constant.astroid_action.replace(/\&amp\;/g, '&')+ '&format=json';
+    const action_link = constant.astroid_action.replace(/\&amp\;/g, '&');
     const toastAstroidMsg = document.getElementById('loadPreset');
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
     // const formData = new FormData(document.getElementById('astroid-form')); // pass data as a form;
@@ -143,7 +173,12 @@ function savePreset() {
     formData.append('astroid-preset-name', formInfo.title);
     formData.append('astroid-preset-desc', formInfo.description);
     formData.append('params', JSON.stringify(props.scope));
-    formData.append(constant.astroid_admin_token, 1);
+    if (constant.cms_name === `moodle`) {
+        formData.append('theme', constant.template_name);
+        formData.append('sesskey', constant.astroid_admin_token);
+    } else {
+        formData.append(constant.astroid_admin_token, 1);
+    }
     save_disabled.value = true;
     axios.post(action_link, formData, {
         headers: {
@@ -199,16 +234,24 @@ function uploadPreset() {
         return false;
     }
     let url = 'index.php?t='+Math.random().toString(36).substring(7);
+    if (constant.cms_name === 'moodle') {
+        url = constant.site_url+`/local/moon/ajax/action.php?sesskey=${constant.astroid_admin_token}`;
+    }
     const toastAstroidMsg = document.getElementById('loadPreset');
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
     const formData = new FormData(); // pass data as a form;
-    formData.append(constant.astroid_admin_token, 1);
+    if (constant.cms_name === 'moodle') {
+        formData.append('task', 'importPreset');
+        formData.append('theme', constant.tpl_template_name);
+    } else {
+        formData.append(constant.astroid_admin_token, 1);
+        formData.append('astroid', 'importpreset');
+        formData.append('option', 'com_ajax');
+        formData.append('template', constant.tpl_template_name);
+    }
     formData.append('title', formInfo.title);
     formData.append('desc', formInfo.description);
     formData.append('file', files.value[0]);
-    formData.append('astroid', 'importpreset');
-    formData.append('option', 'com_ajax');
-    formData.append('template', constant.tpl_template_name);
     axios.post(url, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
@@ -255,7 +298,11 @@ const download = async (url, filename) => {
 }
 
 function exportPreset(preset) {
-    download(constant.root_url+'media/templates/site/'+constant.tpl_template_name+'/astroid/presets/'+preset.name+'.json', preset.name+'.json');
+    if (constant.cms_name === `moodle`) {
+        download(constant.root_url+'theme/'+constant.tpl_template_name+'/moon/presets/'+preset.name+'.json', preset.name+'.json');
+    } else {
+        download(constant.root_url+'media/templates/site/'+constant.tpl_template_name+'/astroid/presets/'+preset.name+'.json', preset.name+'.json');
+    }
 }
 </script>
 <template>

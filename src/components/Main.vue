@@ -181,15 +181,23 @@ function selectPreset(event, group) {
     const toastAstroidMsg = document.getElementById('mainMessage');
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
     let url = 'index.php?t='+Math.random().toString(36).substring(7);
+    if (constant.cms_name === `moodle`) {
+        url = constant.site_url+`/local/moon/ajax/action.php?sesskey=${constant.astroid_admin_token}`;
+    }
     if (process.env.NODE_ENV === 'development') {
         url = "preset_ajax.txt?ts="+Date.now();
     }
     const formData = new FormData(); // pass data as a form
     formData.append(props.config.astroid_lib.astroid_admin_token, 1);
     formData.append('name', event.target.value);
-    formData.append('astroid', 'loadpreset');
-    formData.append('option', 'com_ajax');
-    formData.append('template', props.config.astroid_lib.tpl_template_name);
+      if (constant.cms_name === `moodle`) {
+          formData.append('task', 'loadPreset');
+          formData.append('theme', props.config.astroid_lib.tpl_template_name);
+      } else {
+          formData.append('astroid', 'loadpreset');
+          formData.append('option', 'com_ajax');
+          formData.append('template', props.config.astroid_lib.tpl_template_name);
+      }
     axios.post(url, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
