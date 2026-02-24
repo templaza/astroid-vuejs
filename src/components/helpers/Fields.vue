@@ -210,6 +210,14 @@ function removeDynamicField() {
     <div v-else-if="props.field.input.type === `astroidspacing`" class="astroid-spacing">
         <Spacing v-model="props.scope[props.field.name]" :field="props.field" />
     </div>
+    <div v-else-if="props.field.input.type === `astroidborderradius`" class="astroid-border-radius">
+        <Spacing v-model="props.scope[props.field.name]" :field="props.field" :alias="{
+            'top' : 'start-start',
+            'right' : 'start-end',
+            'bottom' : 'end-end',
+            'left' : 'end-start'
+        }" />
+    </div>
     <div v-else-if="props.field.input.type === `astroidgradient`" class="astroid-gradient">
         <Gradient v-model="props.scope[props.field.name]" :field="props.field" />
     </div>

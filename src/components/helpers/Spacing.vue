@@ -2,7 +2,7 @@
 import {inject, onBeforeMount, onMounted, ref} from 'vue';
 import ResponsiveToggle from "./ResponsiveToggle.vue";
 const emit = defineEmits(['update:modelValue']);
-const props = defineProps(['modelValue', 'field']);
+const props = defineProps(['modelValue', 'field', 'alias']);
 const devices = ['mobile', 'landscape_mobile', 'tablet', 'desktop', 'large_desktop', 'larger_desktop', 'global'];
 const unitOptions = ['px', 'em', 'rem', 'pt', '%', 'Custom'];
 const constant = inject('constant', {});
@@ -110,12 +110,21 @@ const placeholder = ref({
     }
 });
 const positions = ['top', 'right', 'bottom', 'left'];
+let alias = {
+    'top' : 'Top',
+    'right' : 'Right',
+    'bottom' : 'Bottom',
+    'left' : 'Left'
+};
 onBeforeMount(()=>{
     if (typeof props.modelValue !== 'undefined' && props.modelValue !== '') {
         data.value = {
             ...data.value,
             ...JSON.parse(props.modelValue)
         };
+    }
+    if (typeof props.alias !== 'undefined') {
+        alias = props.alias;
     }
 })
 const fieldChanged = ref(false);
@@ -203,7 +212,7 @@ function updateUnit() {
             <input v-for="position in positions" v-model="data[device][position]" @input="updateData(device, position)" type="text" class="form-control" :aria-label="position" :placeholder="placeholder[device][position]">
         </div>
         <div class="row">
-            <div v-for="position in positions" class="col text-center form-text">{{ position }}</div>
+            <div v-for="position in positions" class="col text-center form-text">{{ alias[position] }}</div>
         </div>
     </div>
     <input
