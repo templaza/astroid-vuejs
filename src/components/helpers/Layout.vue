@@ -181,6 +181,9 @@ function addElement(addon) {
         let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
         let sublayout_data = {};
         const sec = Date.now() * 1000 + Math.random() * 1000;
+        if (constant.cms_name === 'moodle') {
+            url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayout&filearea=layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+        }
         if (process.env.NODE_ENV === 'development') {
             url = "editlayout_ajax.txt?ts="+Date.now();
         }
