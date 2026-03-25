@@ -11,6 +11,7 @@ const params = ref(new Object());
 const itemLabel = ref('');
 const currentIdx = ref(-1);
 const element_id = ref(props.field.input.id);
+const count_label = ref('');
 onBeforeMount(()=>{
     element_id.value += '-'+(Date.now() * 1000 + Math.random() * 1000).toString(16).replace(/\./g, "").padEnd(14, "0")+Math.trunc(Math.random() * 100000000);
     if (props.modelValue) {
@@ -26,6 +27,7 @@ onBeforeMount(()=>{
         }
     }
     itemLabel.value = typeof props.field.input.form.index !== 'undefined' && props.field.input.form.index !== '' ? props.field.input.form.index : 'title';
+    count_label.value = typeof props.field.input.form.countLabel !== 'undefined' && props.field.input.form.countLabel !== '' ? props.field.input.form.countLabel : 'Item';
 })
 
 onUpdated(() => {
@@ -133,7 +135,7 @@ function deleteItem(index) {
                 <div>
                     <div class="card card-body">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div><i class="item-move fa-solid fa-up-down me-3"></i>{{ element.params.find((param) => param.name === itemLabel) ? (element.params.find((param) => param.name === itemLabel) && element.params.find((param) => param.name === itemLabel).value !== '' ? element.params.find((param) => param.name === itemLabel).value : 'Item ' + (index+1)) : 'Item ' + (index+1) }}</div>
+                            <div><i class="item-move fa-solid fa-up-down me-3"></i>{{ element.params.find((param) => param.name === itemLabel) ? (element.params.find((param) => param.name === itemLabel) && element.params.find((param) => param.name === itemLabel).value !== '' ? element.params.find((param) => param.name === itemLabel).value : count_label + ' #' + (index+1)) : count_label + ' #' + (index+1) }}</div>
                             <div class="toolbar">
                                 <a href="#" title="Edit" class="me-2" @click.prevent="editItem(index)"><i class="fa-solid fa-gear"></i></a>
                                 <a href="#" title="Duplicate" class="me-2" @click.prevent="duplicateItem(element,index)"><i class="fa-solid fa-copy"></i></a>

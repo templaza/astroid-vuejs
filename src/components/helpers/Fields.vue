@@ -28,6 +28,7 @@ import Text from "./Text.vue";
 import DynamicContent from "./DynamicContent.vue";
 import AstroidGetPro from "./AstroidGetPro.vue";
 import Regions from "./Regions.vue";
+import FromTo from "./FromTo.vue";
 
 const emit = defineEmits(['update:contentlayout', 'update:loadPreset', 'update:getPreset', 'update:subFormState', 'update:presetState', 'update:mainLayoutState']);
 const props = defineProps({
@@ -257,6 +258,9 @@ function removeDynamicField() {
     </div>
     <div v-else-if="props.field.input.type === `astroidborder`" class="astroid-border">
         <Border v-model="props.scope[props.field.name]" :field="props.field" :colorMode="getColorMode()" />
+    </div>
+    <div v-else-if="props.field.input.type === `astroidfromto`" class="astroid-fromto">
+        <FromTo v-model="props.scope[props.field.name]" :field="props.field" />
     </div>
     <div v-else-if="props.field.input.type === `astroidlayouts`" class="astroid-layouts">
         <SubLayouts v-model="props.scope[props.field.name]" :field="props.field" :colorMode="getColorMode()" :type="props.field.input.category" />
