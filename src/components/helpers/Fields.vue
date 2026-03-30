@@ -245,7 +245,8 @@ function removeDynamicField() {
     </div>
     <div v-else-if="props.field.input.type === `astroidheading`" class="astroid-heading">
         <h5 v-if="props.field.input.title">{{ props.field.input.title }}</h5>
-        <p v-if="props.field.input.description" class="form-text">{{ props.field.input.description }}</p>
+        <h5 v-else-if="props.field.label">{{ props.field.label }}</h5>
+        <p v-if="props.field.description" class="form-text">{{ props.field.description }}</p>
     </div>
     <div v-else-if="props.field.input.type === `astroidhidden`" class="astroid-hidden">
         <input type="hidden" :id="props.field.input.id" :name="props.field.input.name" v-model="props.scope[props.field.name]">
