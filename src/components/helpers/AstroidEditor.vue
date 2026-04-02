@@ -1,5 +1,5 @@
 <script setup>
-import {inject, onUpdated, ref} from 'vue';
+import {inject, onBeforeMount, onUpdated, ref} from 'vue';
 import Editor from '@tinymce/tinymce-vue'
 
 const emit = defineEmits(['update:modelValue', 'update:Preset']);
@@ -7,6 +7,7 @@ const props = defineProps(['modelValue', 'field', 'presetUpdated']);
 const constant  =   inject('constant', {});
 const theme = inject('theme', 'light');
 const content = ref(props.modelValue);
+const init = ref({})
 
 const MONACO_EDITOR_OPTIONS = {
     automaticLayout: true,
@@ -17,7 +18,12 @@ const MONACO_EDITOR_OPTIONS = {
 }
 
 const field_id = props.field.input.id + '-' + (Date.now() * 1000 + Math.random() * 1000).toString(16).replace(/\./g, "").padEnd(14, "0")+Math.trunc(Math.random() * 100000000);
-
+onBeforeMount(()=>{
+    if (typeof constant.editor === 'undefined' || (typeof constant.editor !== 'undefined' && constant.editor !== 'jce')) {
+        init.value.plugins = 'lists link image table media wordcount fullscreen searchreplace charmap codesample visualblocks preview';
+    }
+    init.value.toolbar = 'undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media codesample | removeformat searchreplace | fullscreen';
+})
 onUpdated(()=>{
     if (props.presetUpdated === true) {
         emit('update:Preset', false);
@@ -47,10 +53,7 @@ function handleInit(editor) {
                 <Editor
                     v-model="content"
                     :licenseKey=constant.tiny_mce_license
-                    :init="{
-                    plugins: 'lists link image table media wordcount fullscreen searchreplace charmap codesample visualblocks preview',
-                    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media codesample | removeformat searchreplace | fullscreen',
-                }"
+                    :init="init"
                     @change="handleChange"
                     @init="handleInit"
                 />
