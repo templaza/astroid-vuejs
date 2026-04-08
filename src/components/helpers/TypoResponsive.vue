@@ -104,14 +104,52 @@ onUpdated(() => {
     updatePlaceholder();
 })
 function updateUnit() {
-    let lastDevice = 'px';
-    devices.forEach(device => {
-        if (typeof props.modelValue[props.fieldname][device] === 'undefined' || props.modelValue[props.fieldname][device] === '') {
-            props.modelValue[props.fieldname+`_unit`][device] = lastDevice;
-        } else {
-            lastDevice = props.modelValue[props.fieldname+`_unit`][device];
+    // Cache references for performance and clarity
+    const model = props.modelValue || {};
+    const fname = props.fieldname;
+    const unitKey = `${fname}_unit`;
+
+    // Normalize the main field to an object (legacy support: primitive -> per-device copy)
+    if (Object.prototype.hasOwnProperty.call(model, fname) && (model[fname] === null || typeof model[fname] !== 'object')) {
+        const tmp = model[fname];
+        const obj = {};
+        for (let i = 0; i < devices.length; i++) {
+            obj[devices[i]] = tmp;
         }
-    })
+        model[fname] = obj;
+    }
+
+    // Ensure the field exists as an object
+    if (!model[fname] || typeof model[fname] !== 'object') {
+        const obj = {};
+        for (let i = 0; i < devices.length; i++) {
+            obj[devices[i]] = '';
+        }
+        model[fname] = obj;
+    }
+
+    // Normalize unit key: if it's a string or undefined, create an object with defaults
+    if (typeof model[unitKey] === 'string' || typeof model[unitKey] === 'undefined') {
+        const obj = {};
+        for (let i = 0; i < devices.length; i++) {
+            obj[devices[i]] = typeof model[unitKey] === 'string' ? model[unitKey] : 'px';
+        }
+        model[unitKey] = obj;
+    }
+
+    // Apply carry-forward logic for units: if a device unit missing, keep last seen
+    let lastDevice = typeof model[unitKey] === 'string' ? model[unitKey] : 'px';
+    for (let i = 0; i < devices.length; i++) {
+        const device = devices[i];
+        if (typeof model[fname][device] === 'undefined' || model[fname][device] === '') {
+            model[unitKey][device] = lastDevice;
+        } else {
+            // if unit exists for this device, use it for subsequent defaults
+            if (model[unitKey] && model[unitKey][device]) {
+                lastDevice = model[unitKey][device];
+            }
+        }
+    }
 }
 function updatePlaceholder() {
     let lastDevice = '';
@@ -143,7 +181,11 @@ function updatePlaceholder() {
             <div class="col col-3">
                 <div class="row gx-1 align-items-center form-text">
                     <div class="col">
-                        <input class="form-control form-control-sm" :id="props.field.input.id +`_`+ props.fieldname +`_`+ device" :name="props.field.input.name + `[` + props.fieldname + `]` + `[` + device + `]`" type="text" v-model="props.modelValue[props.fieldname][device]" :placeholder="placeholder[device]">
+                        <input class="form-control form-control-sm"
+                               :id="props.field.input.id +`_`+ props.fieldname +`_`+ device"
+                               :name="props.field.input.name + `[` + props.fieldname + `]` + `[` + device + `]`" type="text"
+                               v-model="props.modelValue[props.fieldname][device]"
+                               :placeholder="placeholder[device]">
                     </div> 
                     <div class="col-auto">
                         {{ props.modelValue[props.fieldname+`_unit`][device] }}
@@ -153,7 +195,11 @@ function updatePlaceholder() {
             <div class="col">
                 <div class="astroid-btn-group text-end">
                     <span v-for="(unit, key) in unitOptions" :key="unit">
-                        <input type="radio" class="btn-check" v-model="props.modelValue[props.fieldname+`_unit`][device]" :name="props.field.input.name + `[` + props.fieldname + `_unit` + `]` + `[` + device + `]`" :id="props.field.input.id+`_`+props.fieldname+`_unit_`+device+`_`+key" :value="unit" autocomplete="off">
+                        <input type="radio" class="btn-check"
+                               v-model="props.modelValue[props.fieldname+`_unit`][device]"
+                               :name="props.field.input.name + `[` + props.fieldname + `_unit` + `]` + `[` + device + `]`"
+                               :id="props.field.input.id+`_`+props.fieldname+`_unit_`+device+`_`+key"
+                               :value="unit" autocomplete="off">
                         <label class="btn btn-sm btn-outline-primary btn-as-outline-primary" :for="props.field.input.id+`_`+props.fieldname+`_unit_`+device+`_`+key">{{ unit }}</label>
                     </span>
                 </div>
