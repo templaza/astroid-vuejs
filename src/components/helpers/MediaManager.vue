@@ -39,6 +39,7 @@ function updatePreview() {
     if (props.modelValue.search(/https*:\/\//i) !== -1) {
         _imagePreview.value = props.modelValue;
     } else if (props.modelValue !== '') {
+        _currentFolder.value = props.modelValue.substring(0, props.modelValue.lastIndexOf('/'));
         _imagePreview.value = constant.cms_name === `moodle` ? props.modelValue : constant.site_url + props.field.input.mediaPath + '/'+ props.modelValue;
     }
 }
