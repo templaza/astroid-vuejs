@@ -301,7 +301,39 @@ function exportPreset(preset) {
     if (constant.cms_name === `moodle`) {
         download(constant.root_url+'theme/'+constant.tpl_template_name+'/moon/presets/'+preset.name+'.json', preset.name+'.json');
     } else {
-        download(constant.root_url+'media/templates/site/'+constant.tpl_template_name+'/astroid/presets/'+preset.name+'.json', preset.name+'.json');
+        // download(constant.root_url+'media/templates/site/'+constant.tpl_template_name+'/astroid/presets/'+preset.name+'.json', preset.name+'.json');
+        let url = 'index.php?t='+Math.random().toString(36).substring(7);
+        const toastAstroidMsg = document.getElementById('loadPreset');
+        const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
+        const formData = new FormData(); // pass data as a form;
+        formData.append(constant.astroid_admin_token, 1);
+        formData.append('astroid', 'exportpreset');
+        formData.append('option', 'com_ajax');
+        formData.append('template', constant.tpl_template_name);
+        formData.append('name', preset.name);
+        axios.post(url, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        })
+            .then((response) => {
+                toast_msg.icon = 'fa-solid fa-upload';
+                if (response.data.status === 'success') {
+                    toast_msg.header= 'Preset has been exported';
+                    toast_msg.body = 'Preset '+preset.name+' has been exported.';
+                    toast_msg.color = 'green';
+                    download(constant.root_url+'tmp/'+response.data.data, preset.name+'.zip');
+                } else {
+                    toast_msg.header= 'Can not export preset';
+                    toast_msg.body = response.data.message;
+                    toast_msg.color = 'red';
+                }
+                toastBootstrap.show();
+                document.getElementById('closePresetModal').click();
+            })
+            .catch((err) => {
+                console.error(err);
+            });
     }
 }
 </script>
