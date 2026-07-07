@@ -160,7 +160,7 @@ const updateStatus = ref({
 function changeDeviceStatus(device, fieldname) {
     currentDevice.value = device;
     Object.keys(updateStatus.value).forEach(key => {
-        if (typeof key !== 'undefined' && key !== fieldname) {
+        if (key !== fieldname) {
             updateStatus.value[key] = true;
         }
     });

@@ -39,7 +39,6 @@ function saveElement(params) {
         },
     }).then((response) => {
         if (response.data.status === 'success') {
-            save_disabled.value = false;
             Object.keys(sections.value).forEach((section) => {
                 sections.value[section].widgets.forEach((widget) => {
                     if (widget.id === element_id) {
@@ -48,6 +47,7 @@ function saveElement(params) {
                 })
             })
         }
+        save_disabled.value = false;
     }).catch((err) => {
         console.error(err);
     });
@@ -73,9 +73,9 @@ function elementState(widget) {
         },
     }).then((response) => {
         if (response.data.status === 'success') {
-            save_disabled.value = false;
             widget.source = 'article_data';
         }
+        save_disabled.value = false;
     }).catch((err) => {
         console.error(err);
     });
@@ -99,13 +99,15 @@ function resetElement(widget) {
         },
     }).then((response) => {
         if (response.data.status === 'success') {
-            save_disabled.value = false;
             widget.source = 'template_data';
             let dataElement = JSON.parse(response.data.data);
             widget.params.forEach((param) => {
-                param.value = dataElement.params[param.name];
+                if (typeof dataElement.params[param.name] !== 'undefined') {
+                    param.value = dataElement.params[param.name];
+                }
             })
         }
+        save_disabled.value = false;
     }).catch((err) => {
         console.error(err);
     });
