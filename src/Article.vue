@@ -76,9 +76,10 @@ function elementState(widget) {
             widget.source = 'article_data';
         }
         save_disabled.value = false;
-    }).catch((err) => {
-        console.error(err);
-    });
+}).catch((err) => {
+    console.error(err);
+    save_disabled.value = false;
+});
 }
 
 function resetElement(widget) {
