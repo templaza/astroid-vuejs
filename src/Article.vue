@@ -48,9 +48,10 @@ function saveElement(params) {
             })
         }
         save_disabled.value = false;
-    }).catch((err) => {
-        console.error(err);
-    });
+}).catch((err) => {
+    console.error(err);
+    save_disabled.value = false;
+});
     element.value = {};
 }
 
