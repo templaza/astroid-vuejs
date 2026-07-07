@@ -27,6 +27,7 @@ function saveElement(params) {
     const action_link = 'index.php?option=com_ajax&astroid=saveArticleElement&ts='+Date.now();
     const formData = new FormData();
     element.value.params = params;
+    const element_id = element.value.id;
     formData.append(data.constant.astroid_admin_token, 1);
     formData.append('article_id', data.article_id);
     formData.append('template', data.template);
@@ -39,6 +40,13 @@ function saveElement(params) {
     }).then((response) => {
         if (response.data.status === 'success') {
             save_disabled.value = false;
+            Object.keys(sections.value).forEach((section) => {
+                sections.value[section].widgets.forEach((widget) => {
+                    if (widget.id === element_id) {
+                        widget.source = 'article_data';
+                    }
+                })
+            })
         }
     }).catch((err) => {
         console.error(err);
@@ -66,6 +74,37 @@ function elementState(widget) {
     }).then((response) => {
         if (response.data.status === 'success') {
             save_disabled.value = false;
+            widget.source = 'article_data';
+        }
+    }).catch((err) => {
+        console.error(err);
+    });
+}
+
+function resetElement(widget) {
+    if (!confirm('Are you sure?')) {
+        return;
+    }
+    const action_link = 'index.php?option=com_ajax&astroid=removeArticleElementData&ts='+Date.now();
+    const formData = new FormData();
+    formData.append(data.constant.astroid_admin_token, 1);
+    formData.append('article_id', data.article_id);
+    formData.append('template', data.template);
+    formData.append('element_id', widget.id);
+    formData.append('source', data.source);
+    save_disabled.value = true;
+    axios.post(action_link, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    }).then((response) => {
+        if (response.data.status === 'success') {
+            save_disabled.value = false;
+            widget.source = 'template_data';
+            let dataElement = JSON.parse(response.data.data);
+            widget.params.forEach((param) => {
+                param.value = dataElement.params[param.name];
+            })
         }
     }).catch((err) => {
         console.error(err);
@@ -82,6 +121,7 @@ function elementState(widget) {
                         <div class="widget-name">
                             <div class="title"><i class="text-body-tertiary me-2" :class="data.constant.form_template[widget.type].info.icon"></i>{{ widget.params.find((param) => param.name === 'title').value }}</div>
                             <div class="text-body-tertiary form-text">{{ widget.type }}</div>
+                            <div class="text-body-tertiary form-text">Source Data: {{ widget.source === 'article_data' ? 'In Article' : 'Template - Article Layout' }}<a v-if="widget.source === 'article_data'" @click.prevent="resetElement(widget)" href="#" class="link-body-emphasis ms-2">Reset Data</a></div>
                         </div>
                         <div class="widget-toolbar">
                             <ul v-if="!save_disabled" class="nav flex-column justify-content-end text-end">
