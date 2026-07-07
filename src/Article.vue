@@ -109,9 +109,10 @@ let dataElement = typeof response.data.data === 'string' ? JSON.parse(response.d
             })
         }
         save_disabled.value = false;
-    }).catch((err) => {
-        console.error(err);
-    });
+}).catch((err) => {
+    console.error(err);
+    save_disabled.value = false;
+});
 }
 </script>
 <template>
