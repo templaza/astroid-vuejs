@@ -80,11 +80,11 @@ onMounted(()=>{
         url = "fonts_ajax.txt?ts="+Date.now();
     }
     Object.keys(props.field.input.value).forEach(key => {
-        if (typeof props.modelValue[key] === 'undefined') {
+        if (typeof props.modelValue[key] === 'undefined' && typeof props.field.input.value[key] !== 'undefined') {
             props.modelValue[key] = props.field.input.value[key];
         }
     })
-    getFontType(props.modelValue['font_face'] ? props.modelValue['font_face'] : props.field.input.value['font_face']);
+getFontType((typeof props.modelValue['font_face'] !== 'undefined' && props.modelValue['font_face']) ? props.modelValue['font_face'] : (props.field.input.value['font_face'] || ''));
     axios.get(url)
     .then(function (response) {
         if (response.status === 200) {
@@ -94,7 +94,7 @@ onMounted(()=>{
             if (options.local.length > 1) {
                 fonttypes.value.push('local');
             }
-            const font_name = props.modelValue['font_face'].split(':')[0];
+            const font_name = typeof props.modelValue['font_face'] !== 'undefined' && props.modelValue['font_face'] ? props.modelValue['font_face'].split(':')[0] : '';
             fontSelected.value = response.data[font_type.value].find(element => font_name === element.value.split(':')[0]) || {value: "", text: ""};
         }
     })
@@ -121,7 +121,7 @@ onUnmounted(() => {
 });
 
 onUpdated(()=>{
-    if (fontSelected.value.value !== '' && fontSelected.value.value !== props.modelValue['font_face']) {
+    if (typeof props.modelValue['font_face'] !== 'undefined' && fontSelected.value.value !== '' && fontSelected.value.value !== props.modelValue['font_face']) {
         getFontType(props.modelValue['font_face']);
         const font_name = props.modelValue['font_face'].split(':')[0];
         fontSelected.value = options[font_type.value].find((option) => option.value.split(':')[0] === font_name) || {value: "", text: ""};
@@ -147,7 +147,7 @@ const handleClickOutside = function(event) {
 };
 
 watch(fontSelected, (newFont) => {
-    if (newFont.value !== props.modelValue['font_face']) {
+    if (typeof props.modelValue['font_face'] === 'undefined' || newFont.value !== props.modelValue['font_face']) {
         props.modelValue['font_face'] = newFont.value;
     }
 })
