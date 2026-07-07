@@ -100,7 +100,7 @@ function resetElement(widget) {
     }).then((response) => {
         if (response.data.status === 'success') {
             widget.source = 'template_data';
-            let dataElement = JSON.parse(response.data.data);
+let dataElement = typeof response.data.data === 'string' ? JSON.parse(response.data.data) : (response.data.data || {});
             widget.params.forEach((param) => {
                 if (typeof dataElement.params[param.name] !== 'undefined') {
                     param.value = dataElement.params[param.name];
