@@ -84,7 +84,7 @@ onMounted(()=>{
             props.modelValue[key] = props.field.input.value[key];
         }
     })
-    getFontType(typeof props.modelValue['font_face'] !== 'undefined' && props.modelValue['font_face'] ? props.modelValue['font_face'] : props.field.input.value['font_face']);
+getFontType((typeof props.modelValue['font_face'] !== 'undefined' && props.modelValue['font_face']) ? props.modelValue['font_face'] : (props.field.input.value['font_face'] || ''));
     axios.get(url)
     .then(function (response) {
         if (response.status === 200) {
