@@ -194,8 +194,8 @@ function updatePlaceholder() {
                 </div>
             </div>
             <div class="col col-5">
-                <div class="row align-items-center">
-                    <label :for="props.field.input.id+`_`+props.fieldname+`_unit_`+device" class="col-4 col-form-label">{{ language.TPL_ASTROID_UNIT_LABEL }}:</label>
+                <div class="row align-items-center justify-content-end">
+                    <label :for="props.field.input.id+`_`+props.fieldname+`_unit_`+device" class="col-4 col-form-label inline-size-auto">{{ language.TPL_ASTROID_UNIT_LABEL }}:</label>
                     <div class="col-8">
                         <select v-model="props.modelValue[props.fieldname+`_unit`][device]" :name="props.field.input.name + `[` + props.fieldname + `_unit` + `]` + `[` + device + `]`"
                                 :id="props.field.input.id+`_`+props.fieldname+`_unit_`+device" class="form-select form-select-sm">
