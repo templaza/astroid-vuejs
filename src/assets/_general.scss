@@ -216,3 +216,7 @@ svg:not(:root).svg-inline--fa, svg:not(:host).svg-inline--fa {
         opacity: 0;
     }
 }
+
+.inline-size-auto {
+    inline-size: auto !important;
+}

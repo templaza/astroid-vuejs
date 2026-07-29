@@ -49,5 +49,10 @@
                 margin: 0;
             }
         }
+        .input-group-text {
+            label {
+                color: inherit;
+            }
+        }
     }
 }
