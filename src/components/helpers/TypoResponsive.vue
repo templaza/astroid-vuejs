@@ -178,8 +178,8 @@ function updatePlaceholder() {
         </div>
     </div>
     <div class="mt-2" v-for="device in devices" v-show="props.currentDevice===device">
-        <div class="row justify-content-between g-3 mb-2">
-            <div class="col col-3">
+        <div class="row justify-content-between g-4 mb-2">
+            <div class="col col-4">
                 <div class="row gx-1 align-items-center form-text">
                     <div class="col">
                         <input class="form-control form-control-sm"
@@ -193,10 +193,10 @@ function updatePlaceholder() {
                     </div>
                 </div>
             </div>
-            <div class="col col-5">
+            <div class="col col-7">
                 <div class="row align-items-center justify-content-end">
                     <label :for="props.field.input.id+`_`+props.fieldname+`_unit_`+device" class="col-4 col-form-label inline-size-auto">{{ language.TPL_ASTROID_UNIT_LABEL }}:</label>
-                    <div class="col-8">
+                    <div class="col">
                         <select v-model="props.modelValue[props.fieldname+`_unit`][device]" :name="props.field.input.name + `[` + props.fieldname + `_unit` + `]` + `[` + device + `]`"
                                 :id="props.field.input.id+`_`+props.fieldname+`_unit_`+device" class="form-select form-select-sm">
                             <option v-for="(unit, key) in unitOptions" :key="unit" :value="unit">{{ unit }}</option>
