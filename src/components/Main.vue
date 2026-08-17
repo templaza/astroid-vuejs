@@ -287,8 +287,8 @@ const pro_badge = '<span class="badge text-bg-danger ms-2">PRO</span>';
       </div>
     </form>
     <nav class="nav justify-content-center mb-3 astroid-footer-links">
-      <a class="nav-link d-inline-flex align-items-center" href="https://ko-fi.com/astroidframework" title="Buy Me a Coffee" target="_blank"><img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Buy Me a Coffee" class="me-2">Support Astroid with $10</a>
-      <a class="nav-link" :href="constant.jed_link" title="Reviews for Astroid on JED" target="_blank"><i class="fa-brands fa-joomla me-2"></i>Astroid on JED</a>
+      <a class="nav-link d-inline-flex align-items-center" href="https://ko-fi.com/astroidframework" title="Buy Me a Coffee" target="_blank"><img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Buy Me a Coffee" class="me-2">Buy Me a Coffee</a>
+        <a class="nav-link" :href="constant.jed_link" title="Rate and review for us" target="_blank"><i v-if="constant.cms === `joomla`" class="fa-brands fa-joomla me-2"></i><span v-if="constant.cms === `joomla`">Astroid on JED</span><span v-else>Moon on Moodle</span></a>
       <a class="nav-link" :href="constant.document_link" title="Go to Documentation" target="_blank">Documentation</a>
     </nav>
       <button type="button" id="saveWarningBtn" class="btn btn-primary d-none" data-bs-toggle="modal" data-bs-target="#saveWarning"></button>
