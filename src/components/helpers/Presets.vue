@@ -1,6 +1,6 @@
 <script setup>
 import axios from "axios";
-import { onBeforeMount, ref, reactive, onMounted, inject } from 'vue';
+import { onBeforeMount, ref, reactive, onMounted, onUnmounted, inject } from 'vue';
 
 const emit = defineEmits(['update:loadPreset', 'update:getPreset']);
 const props = defineProps({
@@ -16,10 +16,29 @@ const toast_msg = reactive({
 });
 const list = ref([]);
 const key_bg = ['#ffcdd2','#e1bee7','#bbdefb','#b2dfdb','#ffcc80'];
+const method = 'local_moon_action';
 onBeforeMount(() => {
     if (constant.cms_name === `moodle`) {
-        const url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getPresets&sesskey=${constant.astroid_admin_token}`;
-        axios.get(url).then(function (response) {
+        const url = `${constant.site_url}/lib/ajax/service.php`;
+        const args = {
+            theme: constant.template_name,
+            task: 'getPresets'
+        };
+
+        const requests = [
+            {
+                index: 0,
+                methodname: method,
+                args: args
+            }
+        ];
+
+        axios.post(url, JSON.stringify(requests), {
+            params: {
+                sesskey: constant.astroid_admin_token,
+                info: method
+            }
+        }).then(function (response) {
             if (response.data.status === 'success') {
                 list.value = response.data.data;
                 emit('update:getPreset', response.data.data);
@@ -35,112 +54,189 @@ onBeforeMount(() => {
     }
 })
 
-onMounted(()=>{
-    const presetModal = document.getElementById('addPresetModal')
-    presetModal.addEventListener('hidden.bs.modal', event => {
-        modalType.value = '';
-    })
-})
+const modalType = ref('');
+let presetModalHiddenHandler = null;
 
-function loadPreset(preset) {
-    if (confirm('Your current configure will be lost and overwritten by new data. Are you sure?')) {
-        const toastAstroidMsg = document.getElementById('loadPreset');
-        const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-        let url = 'index.php?t='+Math.random().toString(36).substring(7);
+onMounted(()=>{
+    const presetModal = document.getElementById('addPresetModal');
+    presetModalHiddenHandler = () => {
+        modalType.value = '';
+    };
+    presetModal?.addEventListener('hidden.bs.modal', presetModalHiddenHandler);
+});
+
+onUnmounted(() => {
+    const presetModal = document.getElementById('addPresetModal');
+    if (presetModal && presetModalHiddenHandler) {
+        presetModal.removeEventListener('hidden.bs.modal', presetModalHiddenHandler);
+    }
+});
+
+function showToast(icon, header, body, color = 'green') {
+    const toastAstroidMsg = document.getElementById('loadPreset');
+    if (!toastAstroidMsg) return;
+    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
+    toast_msg.icon = icon;
+    toast_msg.header = header;
+    toast_msg.body = body;
+    toast_msg.color = color;
+    toastBootstrap.show();
+}
+
+function handleLoadPresetResponse(responseData, preset) {
+    if (responseData.status === 'success') {
+        emit('update:loadPreset', responseData.data);
+        showToast(
+            'fa-solid fa-rocket',
+            'Preset '+preset.title+' Applied.',
+            'Please click "Save" button to save your changes!',
+            'green'
+        );
+    } else {
+        showToast(
+            'fa-regular fa-face-sad-tear',
+            'Preset '+preset.title+' is not Applied.',
+            responseData.message,
+            'red'
+        );
+    }
+}
+
+async function loadPreset(preset) {
+    if (!confirm('Your current configure will be lost and overwritten by new data. Are you sure?')) {
+        return;
+    }
+
+    try {
         if (constant.cms_name === `moodle`) {
-            url = constant.site_url+`/local/moon/ajax/action.php?sesskey=${constant.astroid_admin_token}`;
+            const url = `${constant.site_url}/lib/ajax/service.php`;
+            const args = {
+                theme: constant.template_name,
+                task: 'loadPreset'
+            };
+            const requests = [
+                {
+                    index: 0,
+                    methodname: method,
+                    args: args
+                }
+            ];
+            const response = await axios.post(url, JSON.stringify(requests), {
+                params: {
+                    sesskey: constant.astroid_admin_token,
+                    info: method,
+                    name: preset.name
+                }
+            });
+            handleLoadPresetResponse(response.data, preset);
+            return;
         }
+
+        let url = 'index.php?t='+Math.random().toString(36).substring(7);
         if (process.env.NODE_ENV === 'development') {
             url = "preset_ajax.txt?ts="+Date.now();
         }
+
         const formData = new FormData(); // pass data as a form
         formData.append(constant.astroid_admin_token, 1);
         formData.append('name', preset.name);
-        if (constant.cms_name === `moodle`) {
-            formData.append('task', 'loadPreset');
-            formData.append('theme', constant.tpl_template_name);
-        } else {
-            formData.append('astroid', 'loadpreset');
-            formData.append('option', 'com_ajax');
-            formData.append('template', constant.tpl_template_name);
-        }
-        axios.post(url, formData, {
+        formData.append('astroid', 'loadpreset');
+        formData.append('option', 'com_ajax');
+        formData.append('template', constant.tpl_template_name);
+
+        const response = await axios.post(url, formData, {
             headers: {
-            "Content-Type": "multipart/form-data",
+                "Content-Type": "multipart/form-data",
             },
-        })
-        .then((response) => {
-            if (response.data.status === 'success') {
-                emit('update:loadPreset', response.data.data);
-                toast_msg.icon = 'fa-solid fa-rocket';
-                toast_msg.header = 'Preset '+preset.title+' Applied.';
-                toast_msg.body = 'Please click "Save" button to save your changes!';
-                toast_msg.color = 'green';
-                toastBootstrap.show();
-            } else {
-                toast_msg.icon = 'fa-regular fa-face-sad-tear';
-                toast_msg.header = 'Preset '+preset.title+' is not Applied.';
-                toast_msg.body = response.data.message;
-                toast_msg.color = 'red';
-                toastBootstrap.show();
-            }
-        })
-        .catch((err) => {
-            console.error(err);
         });
+        handleLoadPresetResponse(response.data, preset);
+    } catch (error) {
+        console.error(error);
+        showToast(
+            'fa-regular fa-face-sad-tear',
+            'Preset '+preset.title+' is not Applied.',
+            'Unexpected error occurred while loading preset.',
+            'red'
+        );
     }
 }
 
-function deletePreset(index) {
+function handleDeletePresetResponse(responseData, preset) {
+    if (responseData.status === 'success') {
+        showToast(
+            'fa-solid fa-trash',
+            'Preset '+preset.title+' Deleted.',
+            preset.title+' preset has been removed. This action cannot be undo.',
+            'red'
+        );
+    } else {
+        showToast(
+            'fa-regular fa-face-sad-tear',
+            'Preset '+preset.title+' is not Deleted.',
+            responseData.message,
+            'red'
+        );
+    }
+}
+
+async function deletePreset(index) {
     if (confirm('Are you sure?')) {
-        const toastAstroidMsg = document.getElementById('loadPreset');
-        const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-        let url = 'index.php?t='+Math.random().toString(36).substring(7);
-        if (constant.cms_name === 'moodle') {
-            url = constant.site_url+`/local/moon/ajax/action.php?sesskey=${constant.astroid_admin_token}`;
-        }
-        if (process.env.NODE_ENV === 'development') {
-            url = "preset_ajax.txt?ts="+Date.now();
-        }
-        const formData = new FormData(); // pass data as a form
-        formData.append(constant.astroid_admin_token, 1);
-        formData.append('name', list.value[index].name);
-        if (constant.cms_name === 'moodle') {
-            formData.append('task', 'deletePreset');
-            formData.append('theme', constant.tpl_template_name);
-        } else {
+        try  {
+            if (constant.cms_name === 'moodle') {
+                // url = constant.site_url+`/local/moon/ajax/action.php?sesskey=${constant.astroid_admin_token}`;
+                const url = `${constant.site_url}/lib/ajax/service.php`;
+                const args = {
+                    theme: constant.template_name,
+                    task: 'deletePreset'
+                };
+                const requests = [
+                    {
+                        index: 0,
+                        methodname: method,
+                        args: args
+                    }
+                ];
+                const response = await axios.post(url, JSON.stringify(requests), {
+                    params: {
+                        sesskey: constant.astroid_admin_token,
+                        info: method,
+                        name: list.value[index].name
+                    }
+                });
+                handleDeletePresetResponse(response.data, list.value[index]);
+                list.value.splice(index, 1);
+                return;
+            }
+
+            let url = 'index.php?t='+Math.random().toString(36).substring(7);
+            if (process.env.NODE_ENV === 'development') {
+                url = "preset_ajax.txt?ts="+Date.now();
+            }
+            const formData = new FormData(); // pass data as a form
+            formData.append(constant.astroid_admin_token, 1);
+            formData.append('name', list.value[index].name);
             formData.append('astroid', 'removepreset');
             formData.append('option', 'com_ajax');
             formData.append('template', constant.tpl_template_name);
+            const response = await axios.post(url, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            handleDeletePresetResponse(response.data, list.value[index]);
+            list.value.splice(index, 1);
+        } catch (error) {
+            console.error(error);
+            showToast(
+                'fa-regular fa-face-sad-tear',
+                'Preset '+list.value[index].title+' is not Deleted.',
+                'Unexpected error occurred while deleting preset.',
+                'red'
+            );
         }
-        axios.post(url, formData, {
-            headers: {
-            "Content-Type": "multipart/form-data",
-            },
-        })
-        .then((response) => {
-            if (response.data.status === 'success') {
-                toast_msg.icon = 'fa-solid fa-trash';
-                toast_msg.header = 'Preset has been removed.'
-                toast_msg.body = list.value[index].title+' preset has been removed. This action cannot be undo.'
-                toast_msg.color = 'red';
-                toastBootstrap.show();
-                list.value.splice(index, 1);
-            } else {
-                toast_msg.icon = 'fa-regular fa-face-sad-tear';
-                toast_msg.header = 'Preset '+list.value[index].title+' is not deleted.';
-                toast_msg.body = response.data.message;
-                toast_msg.color = 'red';
-                toastBootstrap.show();
-            }
-        })
-        .catch((err) => {
-            console.error(err);
-        });
     }
 }
 
-const modalType = ref('');
 function showModal() {
     const myModal = new Modal('#addPresetModal');
     myModal.show();
@@ -158,59 +254,90 @@ function initSavePreset() {
     formInfo.title = '';
     formInfo.description = '';
 }
-function savePreset() {
+
+function handleSavePresetResponse(responseData, preset) {
+    if (responseData.status === 'success') {
+        showToast(
+            'fa-solid fa-floppy-disk',
+            'Preset '+preset.title+' Saved.',
+            preset.title+' preset has been saved successfully.',
+            'green'
+        );
+        list.value.push({
+            title: preset.title,
+            desc: preset.description,
+            keyword: preset.title.charAt(0),
+            thumbnail: '',
+            demo: '',
+            name: responseData.data
+        })
+    } else {
+        showToast(
+            'fa-regular fa-face-sad-tear',
+            'Preset '+preset.title+' is not Saved.',
+            responseData.message,
+            'red'
+        );
+    }
+    save_disabled.value = false;
+    document.getElementById('closePresetModal').click();
+}
+async function savePreset() {
     if (!formInfo.title) {
         alert('Title cannot be empty!')
         presetTitle.value.focus();
         return false;
     }
     const action_link = constant.astroid_action.replace(/\&amp\;/g, '&');
-    const toastAstroidMsg = document.getElementById('loadPreset');
-    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-    // const formData = new FormData(document.getElementById('astroid-form')); // pass data as a form;
-    const formData = new FormData(); // pass data as a form;
-    formData.append('astroid-preset', 1);
-    formData.append('astroid-preset-name', formInfo.title);
-    formData.append('astroid-preset-desc', formInfo.description);
-    formData.append('params', JSON.stringify(props.scope));
-    if (constant.cms_name === `moodle`) {
-        formData.append('theme', constant.template_name);
-        formData.append('sesskey', constant.astroid_admin_token);
-    } else {
-        formData.append(constant.astroid_admin_token, 1);
-    }
     save_disabled.value = true;
-    axios.post(action_link, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    })
-    .then((response) => {
-        toast_msg.icon = 'fa-solid fa-floppy-disk';
-        if (response.data.status === 'success') {
-            toast_msg.header= 'Preset has been saved';
-            toast_msg.body = 'Preset '+formInfo.title+' has been created';
-            toast_msg.color = 'green';
-            list.value.push({
-                title: formInfo.title,
-                desc: formInfo.description,
-                keyword: formInfo.title.charAt(0),
-                thumbnail: '',
-                demo: '',
-                name: response.data.data
-            })
+    // const formData = new FormData(document.getElementById('astroid-form')); // pass data as a form;
+    try {
+        if (constant.cms_name === `moodle`) {
+            const save_method = 'local_moon_save';
+            const args = {
+                theme: constant.template_name,
+                params: JSON.stringify(props.scope),
+                astroid_preset_name: formInfo.title,
+                astroid_preset_desc: formInfo.description,
+                astroid_preset: 1
+            };
+            const requests = [
+                {
+                    index: 0,
+                    methodname: save_method,
+                    args: args
+                }
+            ];
+            const response = await axios.post(action_link, JSON.stringify(requests), {
+                params: {
+                    sesskey: constant.astroid_admin_token,
+                    info: save_method
+                }
+            });
+            handleSavePresetResponse(response.data[0].data, formInfo);
         } else {
-            toast_msg.header= 'Preset did not saved yet';
-            toast_msg.body = response.data.message;
-            toast_msg.color = 'red';
+            const formData = new FormData(); // pass data as a form;
+            formData.append('astroid-preset', 1);
+            formData.append('astroid-preset-name', formInfo.title);
+            formData.append('astroid-preset-desc', formInfo.description);
+            formData.append('params', JSON.stringify(props.scope));
+            formData.append(constant.astroid_admin_token, 1);
+            const response = await axios.post(action_link, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            handleSavePresetResponse(response.data, formInfo);
         }
-        save_disabled.value = false;
-        toastBootstrap.show();
-        document.getElementById('closePresetModal').click();
-    })
-    .catch((err) => {
-        console.error(err);
-    });
+    } catch (error) {
+        console.error(error);
+        showToast(
+            'fa-regular fa-face-sad-tear',
+            'Preset '+formInfo.title+' is not Saved.',
+            'Unexpected error occurred while saving preset.',
+            'red'
+        );
+    }
 }
 
 // Import preset
@@ -301,7 +428,6 @@ function exportPreset(preset) {
     if (constant.cms_name === `moodle`) {
         download(constant.root_url+'theme/'+constant.tpl_template_name+'/moon/presets/'+preset.name+'.json', preset.name+'.json');
     } else {
-        // download(constant.root_url+'media/templates/site/'+constant.tpl_template_name+'/astroid/presets/'+preset.name+'.json', preset.name+'.json');
         let url = 'index.php?t='+Math.random().toString(36).substring(7);
         const toastAstroidMsg = document.getElementById('loadPreset');
         const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
