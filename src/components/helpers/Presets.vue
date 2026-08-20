@@ -19,6 +19,7 @@ const key_bg = ['#ffcdd2','#e1bee7','#bbdefb','#b2dfdb','#ffcc80'];
 const method = 'local_moon_action';
 onBeforeMount(() => {
     if (constant.cms_name === `moodle`) {
+        const get_presets_method = 'local_moon_preset';
         const url = `${constant.site_url}/lib/ajax/service.php`;
         const args = {
             theme: constant.template_name,
@@ -28,7 +29,7 @@ onBeforeMount(() => {
         const requests = [
             {
                 index: 0,
-                methodname: method,
+                methodname: get_presets_method,
                 args: args
             }
         ];
@@ -36,12 +37,13 @@ onBeforeMount(() => {
         axios.post(url, JSON.stringify(requests), {
             params: {
                 sesskey: constant.astroid_admin_token,
-                info: method
+                info: get_presets_method
             }
         }).then(function (response) {
-            if (response.data.status === 'success') {
-                list.value = response.data.data;
-                emit('update:getPreset', response.data.data);
+            const responseData = response.data[0].data
+            if (responseData.status === 'success') {
+                list.value = JSON.parse(responseData.data);
+                emit('update:getPreset', JSON.parse(responseData.data));
             }
         }).catch(function (error) {
             // handle error
@@ -109,26 +111,27 @@ async function loadPreset(preset) {
 
     try {
         if (constant.cms_name === `moodle`) {
+            const load_method = 'local_moon_preset';
             const url = `${constant.site_url}/lib/ajax/service.php`;
             const args = {
                 theme: constant.template_name,
-                task: 'loadPreset'
+                task: 'loadPreset',
+                name: preset.name
             };
             const requests = [
                 {
                     index: 0,
-                    methodname: method,
+                    methodname: load_method,
                     args: args
                 }
             ];
             const response = await axios.post(url, JSON.stringify(requests), {
                 params: {
                     sesskey: constant.astroid_admin_token,
-                    info: method,
-                    name: preset.name
+                    info: load_method
                 }
             });
-            handleLoadPresetResponse(response.data, preset);
+            handleLoadPresetResponse(response.data[0].data, preset);
             return;
         }
 
@@ -183,27 +186,27 @@ async function deletePreset(index) {
     if (confirm('Are you sure?')) {
         try  {
             if (constant.cms_name === 'moodle') {
-                // url = constant.site_url+`/local/moon/ajax/action.php?sesskey=${constant.astroid_admin_token}`;
+                const delete_method = 'local_moon_preset';
                 const url = `${constant.site_url}/lib/ajax/service.php`;
                 const args = {
                     theme: constant.template_name,
-                    task: 'deletePreset'
+                    task: 'deletePreset',
+                    name: list.value[index].name
                 };
                 const requests = [
                     {
                         index: 0,
-                        methodname: method,
+                        methodname: delete_method,
                         args: args
                     }
                 ];
                 const response = await axios.post(url, JSON.stringify(requests), {
                     params: {
                         sesskey: constant.astroid_admin_token,
-                        info: method,
-                        name: list.value[index].name
+                        info: delete_method
                     }
                 });
-                handleDeletePresetResponse(response.data, list.value[index]);
+                handleDeletePresetResponse(response.data[0].data, list.value[index]);
                 list.value.splice(index, 1);
                 return;
             }
@@ -350,7 +353,32 @@ function initImportPreset() {
 function onFileChange(e) {
     files.value = e.target.files || e.dataTransfer.files;
 }
-function uploadPreset() {
+function handleImportPresetResponse(responseData, preset) {
+    if (responseData.status === 'success') {
+        showToast(
+            'fa-solid fa-upload',
+            'Preset '+preset.title+' Uploaded.',
+            'Preset '+preset.title+' has been created. Click "Load Preset" to load your settings.',
+            'green'
+        );
+        list.value.push({
+            title: formInfo.title,
+            desc: formInfo.description,
+            keyword: formInfo.title.charAt(0),
+            thumbnail: '',
+            demo: '',
+            name: responseData.data
+        })
+    } else {
+        showToast(
+            'fa-regular fa-face-sad-tear',
+            'Preset '+preset.title+' is not Uploaded.',
+            responseData.message,
+            'red'
+        );
+    }
+}
+async function uploadPreset() {
     if (files.value === null || !files.value.length) {
         alert('You have to select a JSON file to upload.')
         return false;
@@ -360,55 +388,68 @@ function uploadPreset() {
         presetTitle.value.focus();
         return false;
     }
-    let url = 'index.php?t='+Math.random().toString(36).substring(7);
-    if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/action.php?sesskey=${constant.astroid_admin_token}`;
-    }
-    const toastAstroidMsg = document.getElementById('loadPreset');
-    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
     const formData = new FormData(); // pass data as a form;
     if (constant.cms_name === 'moodle') {
-        formData.append('task', 'importPreset');
-        formData.append('theme', constant.tpl_template_name);
+        const serviceUrl = `${constant.site_url}/lib/ajax/service.php`;
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', files.value[0]);
+
+        const uploadUrl = `${constant.site_url}/webservice/upload.php`;
+        axios.post(uploadUrl, uploadFormData, {
+            params: { token: constant.upload_token }
+        }).then (function (uploadResponse) {
+            const import_method = 'local_moon_import_preset';
+            const args = {
+                theme: constant.template_name,
+                task: 'importPreset',
+                title: formInfo.title,
+                desc: formInfo.description,
+                fileInfo: {
+                    contextid: uploadResponse.data[0].contextid,
+                    component: uploadResponse.data[0].component,
+                    filearea: uploadResponse.data[0].filearea,
+                    itemid: uploadResponse.data[0].itemid,
+                    filepath: uploadResponse.data[0].filepath,
+                    filename: uploadResponse.data[0].filename
+                }
+            };
+            const requests = [
+                {
+                    index: 0,
+                    methodname: import_method,
+                    args: args
+                }
+            ];
+            axios.post(serviceUrl, JSON.stringify(requests), {
+                params: {
+                    sesskey: constant.astroid_admin_token,
+                    info: import_method,
+                }
+            }).then (function(response) {
+                handleImportPresetResponse(response.data[0].data, formInfo);
+            });
+        }).catch(function (error) {
+            // handle error
+            console.log(error);
+        });
+
     } else {
+        let url = 'index.php?t='+Math.random().toString(36).substring(7);
         formData.append(constant.astroid_admin_token, 1);
         formData.append('astroid', 'importpreset');
         formData.append('option', 'com_ajax');
         formData.append('template', constant.tpl_template_name);
+        formData.append('title', formInfo.title);
+        formData.append('desc', formInfo.description);
+        formData.append('file', files.value[0]);
+        const response = await axios.post(url, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+        handleImportPresetResponse(response.data, formInfo);
     }
-    formData.append('title', formInfo.title);
-    formData.append('desc', formInfo.description);
-    formData.append('file', files.value[0]);
-    axios.post(url, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    })
-    .then((response) => {
-        toast_msg.icon = 'fa-solid fa-upload';
-        if (response.data.status === 'success') {
-            toast_msg.header= 'Preset has been uploaded';
-            toast_msg.body = 'Preset '+formInfo.title+' has been created. Click "Load Preset" to load your settings.';
-            toast_msg.color = 'green';
-            list.value.push({
-                title: formInfo.title,
-                desc: formInfo.description,
-                keyword: formInfo.title.charAt(0),
-                thumbnail: '',
-                demo: '',
-                name: response.data.data
-            })
-        } else {
-            toast_msg.header= 'Preset did not uploaded yet';
-            toast_msg.body = response.data.message;
-            toast_msg.color = 'red';
-        }
-        toastBootstrap.show();
-        document.getElementById('closePresetModal').click();
-    })
-    .catch((err) => {
-        console.error(err);
-    });
+    document.getElementById('closePresetModal').click();
 }
 
 const download = async (url, filename) => {
