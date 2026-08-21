@@ -16,7 +16,6 @@ const toast_msg = reactive({
 });
 const list = ref([]);
 const key_bg = ['#ffcdd2','#e1bee7','#bbdefb','#b2dfdb','#ffcc80'];
-const method = 'local_moon_action';
 onBeforeMount(() => {
     if (constant.cms_name === `moodle`) {
         const get_presets_method = 'local_moon_preset';
@@ -58,6 +57,7 @@ onBeforeMount(() => {
 
 const modalType = ref('');
 let presetModalHiddenHandler = null;
+const serviceUrl = `${constant.site_url}/lib/ajax/service.php`;
 
 onMounted(()=>{
     const presetModal = document.getElementById('addPresetModal');
@@ -112,7 +112,6 @@ async function loadPreset(preset) {
     try {
         if (constant.cms_name === `moodle`) {
             const load_method = 'local_moon_preset';
-            const url = `${constant.site_url}/lib/ajax/service.php`;
             const args = {
                 theme: constant.template_name,
                 task: 'loadPreset',
@@ -125,7 +124,7 @@ async function loadPreset(preset) {
                     args: args
                 }
             ];
-            const response = await axios.post(url, JSON.stringify(requests), {
+            const response = await axios.post(serviceUrl, JSON.stringify(requests), {
                 params: {
                     sesskey: constant.astroid_admin_token,
                     info: load_method
@@ -187,7 +186,6 @@ async function deletePreset(index) {
         try  {
             if (constant.cms_name === 'moodle') {
                 const delete_method = 'local_moon_preset';
-                const url = `${constant.site_url}/lib/ajax/service.php`;
                 const args = {
                     theme: constant.template_name,
                     task: 'deletePreset',
@@ -200,7 +198,7 @@ async function deletePreset(index) {
                         args: args
                     }
                 ];
-                const response = await axios.post(url, JSON.stringify(requests), {
+                const response = await axios.post(serviceUrl, JSON.stringify(requests), {
                     params: {
                         sesskey: constant.astroid_admin_token,
                         info: delete_method
@@ -390,7 +388,6 @@ async function uploadPreset() {
     }
     const formData = new FormData(); // pass data as a form;
     if (constant.cms_name === 'moodle') {
-        const serviceUrl = `${constant.site_url}/lib/ajax/service.php`;
         const uploadFormData = new FormData();
         uploadFormData.append('file', files.value[0]);
 

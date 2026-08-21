@@ -52,45 +52,75 @@ function submitForm() {
     return false;
 }
 
+function showToast(icon, header, body, color = 'green') {
+    const toastAstroidMsg = document.getElementById('astroidMessage');
+    if (!toastAstroidMsg) return;
+    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
+    toast_msg.icon = icon;
+    toast_msg.header = header;
+    toast_msg.body = body;
+    toast_msg.color = color;
+    toastBootstrap.show();
+}
+
 function clearCache() {
-  const toastAstroidMsg = document.getElementById('astroidMessage');
-  const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-  cache_icon.value = 'fa-sync fa-spin';
-  let url = props.config.astroid_lib.base_url+'/index.php?option=com_ajax&astroid=clear-cache&template='+props.config.astroid_lib.template_name;
-  if (constant.cms_name === 'moodle') {
-      url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=clearCache&sesskey=${constant.astroid_admin_token}`;
-  }
-  axios.get(url)
-  .then(function (response) {
-    if (response.data.status === 'success') {
-      toast_msg.icon  = 'fa-solid fa-eraser';
-      toast_msg.header= 'Template Clear Cache';
-      toast_msg.body = response.data.data.message;
-      toast_msg.color = 'darkviolet';
-      toastBootstrap.show();
-      if (constant.cms_name === 'joomla') {
-          axios.get(props.config.astroid_lib.base_url+'/index.php?option=com_ajax&astroid=clear-joomla-cache')
-              .then(function (response) {
-                  if (response.data.status === 'success') {
-                      cache_icon.value = 'fa-eraser';
-                      toast_msg.header= 'Joomla Clear Cache';
-                      toast_msg.body = response.data.data.message;
-                      toastBootstrap.show();
-                  }
-              })
-              .catch(function (error) {
-                  // handle error
-                  console.log(error);
-              });
-      } else {
-          cache_icon.value = 'fa-eraser';
-      }
+    cache_icon.value = 'fa-sync fa-spin';
+    if (constant.cms_name === 'moodle') {
+        const method = 'local_moon_action';
+        const url = `${constant.site_url}/lib/ajax/service.php`;
+        const args = {
+            theme: constant.template_name,
+            task: 'clearCache',
+        };
+        const requests = [
+            {
+                index: 0,
+                methodname: method,
+                args: args
+            }
+        ];
+        axios.post(url, JSON.stringify(requests), {
+            params: {
+                sesskey: constant.astroid_admin_token,
+                info: method
+            }
+        }).then(function (response) {
+            if (response.data[0].data.status === 'success') {
+                showToast('fa-solid fa-eraser', 'Cache Cleared', response.data[0].data.message, 'darkviolet');
+                cache_icon.value = 'fa-eraser';
+            }
+        }).catch(function (error) {
+            // handle error
+            console.log(error);
+        });
+    } else {
+        const url = props.config.astroid_lib.base_url+'/index.php?option=com_ajax&astroid=clear-cache&template='+props.config.astroid_lib.template_name;
+        axios.get(url)
+            .then(function (response) {
+                if (response.data.status === 'success') {
+                    showToast('fa-solid fa-eraser', 'Template Clear Cache', response.data.data.message, 'darkviolet');
+                    if (constant.cms_name === 'joomla') {
+                        axios.get(props.config.astroid_lib.base_url+'/index.php?option=com_ajax&astroid=clear-joomla-cache')
+                            .then(function (response) {
+                                if (response.data.status === 'success') {
+                                    cache_icon.value = 'fa-eraser';
+                                    showToast('fa-solid fa-eraser', 'Joomla Clear Cache', response.data.data.message, 'darkviolet');
+                                }
+                            })
+                            .catch(function (error) {
+                                // handle error
+                                console.log(error);
+                            });
+                    } else {
+                        cache_icon.value = 'fa-eraser';
+                    }
+                }
+            })
+            .catch(function (error) {
+                // handle error
+                console.log(error);
+            });
     }
-  })
-  .catch(function (error) {
-    // handle error
-    console.log(error);
-  });
 }
 </script>
 <template>
