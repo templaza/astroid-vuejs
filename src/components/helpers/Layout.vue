@@ -17,6 +17,7 @@ const props = defineProps({
 });
 const constant  =   inject('constant', {});
 const language  =   inject('language', []);
+const serviceUrl = `${constant.site_url}/lib/ajax/service.php`;
 
 onBeforeMount(()=>{
     layout.value    =   props.field.input.value;
@@ -182,44 +183,93 @@ function addElement(addon) {
         let sublayout_data = {};
         const sec = Date.now() * 1000 + Math.random() * 1000;
         if (constant.cms_name === 'moodle') {
-            url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayout&filearea=layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
-        }
-        if (process.env.NODE_ENV === 'development') {
-            url = "editlayout_ajax.txt?ts="+Date.now();
-        }
-        const formData = new FormData(); // pass data as a form
-        formData.append(constant.astroid_admin_token, 1);
-        formData.append('name', addon.name);
-        formData.append('template', constant.tpl_template_name);
-        formData.append('type', 'layouts');
-        axios.post(url, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        }).then((response) => {
-            if (response.data.status === 'success') {
-                sublayout_data = JSON.parse(response.data.data.data);
-                layout.value.sections.every((section, index) => {
-                    if (element.value.id === section.id) {
-                        sublayout_data.sections.forEach((section, sub_idx) => {
-                            layout.value.sections.splice(index+sub_idx+1, 0, {
-                                id: sec.toString(16).replace(/\./g, "").padEnd(14, "0")+Math.trunc(Math.random() * 100000000),
-                                type: section.type,
-                                rows: section.rows,
-                                params: section.params,
-                                state: 1
+            // url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayout&filearea=layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+            const method = 'local_moon_layout';
+            const args = {
+                theme: constant.template_name,
+                task: 'getlayout',
+                filearea: 'layouts',
+                itemid: 0,
+                name: addon.name
+            };
+
+            const requests = [
+                {
+                    index: 0,
+                    methodname: method,
+                    args: args
+                }
+            ];
+
+            axios.post(serviceUrl, JSON.stringify(requests), {
+                params: {
+                    sesskey: constant.astroid_admin_token,
+                    info: method
+                }
+            }).then(function (response) {
+                const responseData = response.data[0].data;
+                if (responseData.status === 'success') {
+                    sublayout_data = JSON.parse(responseData.data);
+                    layout.value.sections.every((section, index) => {
+                        if (element.value.id === section.id) {
+                            sublayout_data.sections.forEach((section, sub_idx) => {
+                                layout.value.sections.splice(index+sub_idx+1, 0, {
+                                    id: sec.toString(16).replace(/\./g, "").padEnd(14, "0")+Math.trunc(Math.random() * 100000000),
+                                    type: section.type,
+                                    rows: section.rows,
+                                    params: section.params,
+                                    state: 1
+                                });
                             });
-                        });
-                        // continue
-                        element.value = {};
-                        return false;
-                    }
-                    return true;
-                });
+                            // continue
+                            element.value = {};
+                            return false;
+                        }
+                        return true;
+                    });
+                }
+            }).catch(function (error) {
+                // handle error
+                console.log(error);
+            });
+        } else {
+            if (process.env.NODE_ENV === 'development') {
+                url = "editlayout_ajax.txt?ts="+Date.now();
             }
-        }).catch((err) => {
-            console.error(err);
-        });
+            const formData = new FormData(); // pass data as a form
+            formData.append(constant.astroid_admin_token, 1);
+            formData.append('name', addon.name);
+            formData.append('template', constant.tpl_template_name);
+            formData.append('type', 'layouts');
+            axios.post(url, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    sublayout_data = JSON.parse(response.data.data.data);
+                    layout.value.sections.every((section, index) => {
+                        if (element.value.id === section.id) {
+                            sublayout_data.sections.forEach((section, sub_idx) => {
+                                layout.value.sections.splice(index+sub_idx+1, 0, {
+                                    id: sec.toString(16).replace(/\./g, "").padEnd(14, "0")+Math.trunc(Math.random() * 100000000),
+                                    type: section.type,
+                                    rows: section.rows,
+                                    params: section.params,
+                                    state: 1
+                                });
+                            });
+                            // continue
+                            element.value = {};
+                            return false;
+                        }
+                        return true;
+                    });
+                }
+            }).catch((err) => {
+                console.error(err);
+            });
+        }
     } else {
         let id = Date.now() * 1000 + Math.random() * 1000;
         id = id.toString(16).replace(/\./g, "").padEnd(14, "0")+Math.trunc(Math.random() * 100000000);

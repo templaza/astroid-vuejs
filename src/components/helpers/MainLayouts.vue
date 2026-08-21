@@ -34,6 +34,7 @@ const save_disabled = ref(false);
 const files = ref(null);
 const checklist = ref([]);
 const ajaxloading = ref(false);
+const serviceUrl = `${constant.site_url}/lib/ajax/service.php`;
 
 onBeforeMount(() => {
     if (props.modelValue !== '') {
@@ -99,7 +100,37 @@ watch(layout, (newText) => {
         emit('update:layoutSaved', false);
     }
 })
-
+function handleLayoutResponse(responseData, filename)
+{
+    if (responseData.status === 'success') {
+        reloadLayout.value = true;
+        layout.value = responseData.data.data;
+        formInfo.title = responseData.data.title;
+        formInfo.desc = responseData.data.desc;
+        formInfo.thumbnail = responseData.data.thumbnail;
+        formInfo.name = filename;
+        selected_layout.value = filename;
+        layouts.value[filename] = {
+            title: responseData.data.title,
+            desc: responseData.data.desc,
+            thumbnail: responseData.data.thumbnail,
+            data: responseData.data.data,
+            status: 'first_load'
+        };
+        if (constant.cms_name === 'moodle') {
+            formInfo.layout = responseData.data.layout;
+            layouts.value[filename].layout = responseData.data.layout;
+        }
+        if (filename === props.modelValue) {
+            default_layout.value = responseData.data.data;
+            formInfo.default = true;
+        } else {
+            formInfo.default = false;
+        }
+        ajaxloading.value = false;
+        editItem.value = true;
+    }
+}
 function editLayout(filename = '') {
     if (filename !== '') {
         if (isJsonString(props.modelValue)) {
@@ -132,56 +163,56 @@ function editLayout(filename = '') {
             return true;
         }
         ajaxloading.value = true;
-        let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
         if (constant.cms_name === 'moodle') {
-            url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayout&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
-        }
-        if (process.env.NODE_ENV === 'development') {
-            url = "editlayout_ajax.txt?ts="+Date.now();
-        }
-        const formData = new FormData(); // pass data as a form
-        formData.append(constant.astroid_admin_token, 1);
-        formData.append('name', filename);
-        formData.append('template', constant.tpl_template_name);
-        formData.append('type', 'main_layouts');
-        axios.post(url, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        })
-            .then((response) => {
-                if (response.data.status === 'success') {
-                    reloadLayout.value = true;
-                    layout.value = response.data.data.data;
-                    formInfo.title = response.data.data.title;
-                    formInfo.desc = response.data.data.desc;
-                    formInfo.thumbnail = response.data.data.thumbnail;
-                    formInfo.name = filename;
-                    selected_layout.value = filename;
-                    layouts.value[filename] = {
-                        title: response.data.data.title,
-                        desc: response.data.data.desc,
-                        thumbnail: response.data.data.thumbnail,
-                        data: response.data.data.data,
-                        status: 'first_load'
-                    };
-                    if (constant.cms_name === 'moodle') {
-                        formInfo.layout = response.data.data.layout;
-                        layouts.value[filename].layout = response.data.data.layout;
-                    }
-                    if (filename === props.modelValue) {
-                        default_layout.value = response.data.data.data;
-                        formInfo.default = true;
-                    } else {
-                        formInfo.default = false;
-                    }
-                    ajaxloading.value = false;
-                    editItem.value = true;
+            const method = 'local_moon_layout';
+            const args = {
+                theme: constant.template_name,
+                task: 'getlayout',
+                filearea: 'main_layouts',
+                itemid: 0,
+                name: filename
+            };
+
+            const requests = [
+                {
+                    index: 0,
+                    methodname: method,
+                    args: args
                 }
-            })
-            .catch((err) => {
+            ];
+
+            axios.post(serviceUrl, JSON.stringify(requests), {
+                params: {
+                    sesskey: constant.astroid_admin_token,
+                    info: method
+                }
+            }).then(function (response) {
+                response.data[0].data.data = JSON.parse(response.data[0].data.data);
+                handleLayoutResponse(response.data[0].data, filename);
+            }).catch(function (error) {
+                // handle error
+                console.log(error);
+            });
+        } else {
+            let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
+            if (process.env.NODE_ENV === 'development') {
+                url = "editlayout_ajax.txt?ts="+Date.now();
+            }
+            const formData = new FormData(); // pass data as a form
+            formData.append(constant.astroid_admin_token, 1);
+            formData.append('name', filename);
+            formData.append('template', constant.tpl_template_name);
+            formData.append('type', 'main_layouts');
+            axios.post(url, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }).then((response) => {
+                handleLayoutResponse(response.data, filename);
+            }).catch((err) => {
                 console.error(err);
             });
+        }
     } else {
         reloadLayout.value = true;
         resetValues();
@@ -204,6 +235,51 @@ function onFileChange(e) {
     files.value = e.target.files || e.dataTransfer.files;
 }
 
+function handleSaveResponse(responseData, action) {
+    const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
+    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
+    if (responseData.status === 'success') {
+        toast_msg.icon = 'fa-solid fa-rocket';
+        toast_msg.header = 'Layout '+formInfo.title+' is saved.';
+        toast_msg.body = 'You can use it to display your website.';
+        toast_msg.color = 'green';
+        save_disabled.value = false;
+        layouts.value[responseData.data.name] = {
+            title: responseData.data.title,
+            desc: responseData.data.desc,
+            thumbnail: responseData.data.thumbnail,
+            layout: formInfo.layout,
+            data: layout.value,
+            status: 'saved'
+        };
+        formInfo.name = responseData.data.name;
+        if (responseData.data.thumbnail !== '') {
+            formInfo.thumbnail = responseData.data.thumbnail;
+        }
+        emit('update:layoutSaved', true);
+        selected_layout.value = responseData.data.name;
+        if (formInfo.default) {
+            emit('update:modelValue', responseData.data.name);
+            default_layout.value = layout.value;
+        }
+        Object.keys(layouts.value).forEach(key => {
+            if (key !== responseData.data.name && layouts.value[key].status === 'updated') {
+                emit('update:layoutSaved', false);
+            }
+        });
+        callAjax();
+        if (action !== 'apply') {
+            document.getElementById(props.field.input.id+`_saveLayout_close`).click();
+        }
+    } else {
+        toast_msg.icon = 'fa-regular fa-face-sad-tear';
+        toast_msg.header = 'Layout '+formInfo.title+' is not saved.';
+        toast_msg.body = responseData.message;
+        toast_msg.color = 'red';
+    }
+    toastBootstrap.show();
+}
+
 function saveLayout(action = 'save') {
     if (formInfo.title === '') {
         if (action === 'save_dialog') {
@@ -214,80 +290,73 @@ function saveLayout(action = 'save') {
         }
         return true;
     }
-    const formData = new FormData(); // pass data as a form
-    let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
-    if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=savelayout&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
-        formData.append('layout', formInfo.layout);
-    }
-    const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
-    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-    formData.append(constant.astroid_admin_token, 1);
-    formData.append('title', formInfo.title);
-    formData.append('desc', formInfo.desc);
-    formData.append('data', layout.value);
-    formData.append('thumbnail_old', formInfo.thumbnail);
-
-    if (files.value !== null && files.value.length) {
-        formData.append('thumbnail', files.value[0]);
-    }
-    if (formInfo.name !== ``) {
-        formData.append('name', formInfo.name);
-    }
-    formData.append('template', constant.tpl_template_name);
-    formData.append('type', 'main_layouts');
     save_disabled.value = true;
+    if (constant.cms_name === 'moodle') {
+        const method = 'local_moon_save_layout';
+        const args = {
+            theme: constant.template_name,
+            task: 'savelayout',
+            filearea: 'main_layouts',
+            itemid: 0,
+            layout: formInfo.layout,
+            data: layout.value,
+            title: formInfo.title,
+            desc: formInfo.desc,
+            thumbnail_old: formInfo.thumbnail,
+            name: '',
+        };
+        if (formInfo.name !== ``) {
+            args.name = formInfo.name;
+        }
 
-    axios.post(url, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    })
-        .then((response) => {
-            if (response.data.status === 'success') {
-                toast_msg.icon = 'fa-solid fa-rocket';
-                toast_msg.header = 'Layout '+formInfo.title+' is saved.';
-                toast_msg.body = 'You can use it to display your website.';
-                toast_msg.color = 'green';
-                save_disabled.value = false;
-                layouts.value[response.data.data.name] = {
-                    title: response.data.data.title,
-                    desc: response.data.data.desc,
-                    thumbnail: response.data.data.thumbnail,
-                    layout: formInfo.layout,
-                    data: layout.value,
-                    status: 'saved'
-                };
-                formInfo.name = response.data.data.name;
-                if (response.data.data.thumbnail !== '') {
-                    formInfo.thumbnail = response.data.data.thumbnail;
-                }
-                emit('update:layoutSaved', true);
-                selected_layout.value = response.data.data.name;
-                if (formInfo.default) {
-                    emit('update:modelValue', response.data.data.name);
-                    default_layout.value = layout.value;
-                }
-                Object.keys(layouts.value).forEach(key => {
-                    if (key !== response.data.data.name && layouts.value[key].status === 'updated') {
-                        emit('update:layoutSaved', false);
-                    }
-                });
-                callAjax();
-                if (action !== 'apply') {
-                    document.getElementById(props.field.input.id+`_saveLayout_close`).click();
-                }
-            } else {
-                toast_msg.icon = 'fa-regular fa-face-sad-tear';
-                toast_msg.header = 'Layout '+formInfo.title+' is not saved.';
-                toast_msg.body = response.data.message;
-                toast_msg.color = 'red';
+        const requests = [
+            {
+                index: 0,
+                methodname: method,
+                args: args
             }
-            toastBootstrap.show();
-        })
-        .catch((err) => {
+        ];
+
+        axios.post(serviceUrl, JSON.stringify(requests), {
+            params: {
+                sesskey: constant.astroid_admin_token,
+                info: method
+            }
+        }).then(function (response) {
+            response.data[0].data.data = JSON.parse(response.data[0].data.data);
+            handleSaveResponse(response.data[0].data, action);
+        }).catch(function (error) {
+            // handle error
+            console.log(error);
+        });
+    } else {
+        const formData = new FormData(); // pass data as a form
+        let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
+        formData.append(constant.astroid_admin_token, 1);
+        formData.append('title', formInfo.title);
+        formData.append('desc', formInfo.desc);
+        formData.append('data', layout.value);
+        formData.append('thumbnail_old', formInfo.thumbnail);
+
+        if (files.value !== null && files.value.length) {
+            formData.append('thumbnail', files.value[0]);
+        }
+        if (formInfo.name !== ``) {
+            formData.append('name', formInfo.name);
+        }
+        formData.append('template', constant.tpl_template_name);
+        formData.append('type', 'main_layouts');
+
+        axios.post(url, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }).then((response) => {
+            handleSaveResponse(response.data, action);
+        }).catch((err) => {
             console.error(err);
         });
+    }
 }
 
 function resetFormInfo(isDefault = false) {

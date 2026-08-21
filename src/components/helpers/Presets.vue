@@ -16,10 +16,10 @@ const toast_msg = reactive({
 });
 const list = ref([]);
 const key_bg = ['#ffcdd2','#e1bee7','#bbdefb','#b2dfdb','#ffcc80'];
+const serviceUrl = `${constant.site_url}/lib/ajax/service.php`;
 onBeforeMount(() => {
     if (constant.cms_name === `moodle`) {
         const get_presets_method = 'local_moon_preset';
-        const url = `${constant.site_url}/lib/ajax/service.php`;
         const args = {
             theme: constant.template_name,
             task: 'getPresets'
@@ -33,7 +33,7 @@ onBeforeMount(() => {
             }
         ];
 
-        axios.post(url, JSON.stringify(requests), {
+        axios.post(serviceUrl, JSON.stringify(requests), {
             params: {
                 sesskey: constant.astroid_admin_token,
                 info: get_presets_method
@@ -57,7 +57,6 @@ onBeforeMount(() => {
 
 const modalType = ref('');
 let presetModalHiddenHandler = null;
-const serviceUrl = `${constant.site_url}/lib/ajax/service.php`;
 
 onMounted(()=>{
     const presetModal = document.getElementById('addPresetModal');
