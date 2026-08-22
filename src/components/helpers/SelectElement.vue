@@ -5,6 +5,7 @@ import axios from "axios";
 const emit = defineEmits(['update:closeElement', 'update:selectElement']);
 const props = defineProps(['form', 'type', 'system', 'source']);
 const constant = inject('constant', {});
+const api      = inject('api');
 const currentFilter = ref('');
 const addons = ref([]);
 const filters = ref([]);
@@ -56,33 +57,45 @@ onMounted(()=> {
         getSublayouts();
     }
 })
-
-function getSublayouts() {
-    let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayouts&template="+constant.tpl_template_name+"&ts="+Date.now();
+function handleGetLayoutsResponse(responseData) {
+    sublayouts.value = responseData.data;
+    if (sublayouts.value.length) {
+        filters.value.push('Sublayouts');
+        orders['Sublayouts'] = Object.keys(orders).length;
+        counter['Sublayouts'] = sublayouts.value.length;
+        sublayouts.value.forEach(sublayout => {
+            sublayout.type = 'sublayout';
+        });
+    }
+}
+async function getSublayouts() {
     if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayouts&filearea=layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
-    }
-    if (process.env.NODE_ENV === 'development') {
-        url = "layout_ajax.txt?ts="+Date.now();
-    }
-    axios.get(url)
-    .then(function (response) {
-        if (response.data.status === 'success') {
-            sublayouts.value = response.data.data;
-            if (sublayouts.value.length) {
-                filters.value.push('Sublayouts');
-                orders['Sublayouts'] = Object.keys(orders).length;
-                counter['Sublayouts'] = sublayouts.value.length;
-                sublayouts.value.forEach(sublayout => {
-                    sublayout.type = 'sublayout';
-                });
-            }
+        const response = await api.moodleRequest('local_moon_layout', {
+            theme: constant.template_name,
+            task: 'getlayouts',
+            filearea: 'layouts',
+            itemid: 0
+        });
+        if (response.data[0].data.status === 'success') {
+            response.data[0].data.data = JSON.parse(response.data[0].data.data);
+            handleGetLayoutsResponse(response.data[0].data);
         }
-    })
-    .catch(function (error) {
-        // handle error
-        console.log(error);
-    });
+    } else {
+        let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayouts&template="+constant.tpl_template_name+"&ts="+Date.now();
+        if (process.env.NODE_ENV === 'development') {
+            url = "layout_ajax.txt?ts="+Date.now();
+        }
+        axios.get(url)
+            .then(function (response) {
+                if (response.data.status === 'success') {
+                    handleGetLayoutsResponse(response.data);
+                }
+            })
+            .catch(function (error) {
+                // handle error
+                console.log(error);
+            });
+    }
 }
 
 function selectElement(addon) {

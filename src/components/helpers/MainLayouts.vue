@@ -11,6 +11,7 @@ const props = defineProps({
 });
 const constant  =   inject('constant', {});
 const language  =   inject('language', []);
+const api       =   inject('api');
 const items     =   ref([]);
 const layout    =   ref('{"sections":[]}');
 const layouts   =   ref({});
@@ -131,7 +132,7 @@ function handleLayoutResponse(responseData, filename)
         editItem.value = true;
     }
 }
-function editLayout(filename = '') {
+async function editLayout(filename = '') {
     if (filename !== '') {
         if (isJsonString(props.modelValue)) {
             alert('You have to save your current layout as Default before switching to another layout.');
@@ -164,35 +165,16 @@ function editLayout(filename = '') {
         }
         ajaxloading.value = true;
         if (constant.cms_name === 'moodle') {
-            const method = 'local_moon_layout';
-            const args = {
+            const response = await api.moodleRequest('local_moon_layout',  {
                 theme: constant.template_name,
                 task: 'getlayout',
                 filearea: 'main_layouts',
                 itemid: 0,
                 name: filename
-            };
-
-            const requests = [
-                {
-                    index: 0,
-                    methodname: method,
-                    args: args
-                }
-            ];
-
-            axios.post(serviceUrl, JSON.stringify(requests), {
-                params: {
-                    sesskey: constant.astroid_admin_token,
-                    info: method
-                }
-            }).then(function (response) {
-                response.data[0].data.data = JSON.parse(response.data[0].data.data);
-                handleLayoutResponse(response.data[0].data, filename);
-            }).catch(function (error) {
-                // handle error
-                console.log(error);
             });
+
+            response.data[0].data.data = JSON.parse(response.data[0].data.data);
+            handleLayoutResponse(response.data[0].data, filename);
         } else {
             let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
             if (process.env.NODE_ENV === 'development') {
@@ -280,7 +262,7 @@ function handleSaveResponse(responseData, action) {
     toastBootstrap.show();
 }
 
-function saveLayout(action = 'save') {
+async function saveLayout(action = 'save') {
     if (formInfo.title === '') {
         if (action === 'save_dialog') {
             alert('You have to input the Title')
@@ -292,8 +274,7 @@ function saveLayout(action = 'save') {
     }
     save_disabled.value = true;
     if (constant.cms_name === 'moodle') {
-        const method = 'local_moon_save_layout';
-        const args = {
+        let args = {
             theme: constant.template_name,
             task: 'savelayout',
             filearea: 'main_layouts',
@@ -308,27 +289,9 @@ function saveLayout(action = 'save') {
         if (formInfo.name !== ``) {
             args.name = formInfo.name;
         }
-
-        const requests = [
-            {
-                index: 0,
-                methodname: method,
-                args: args
-            }
-        ];
-
-        axios.post(serviceUrl, JSON.stringify(requests), {
-            params: {
-                sesskey: constant.astroid_admin_token,
-                info: method
-            }
-        }).then(function (response) {
-            response.data[0].data.data = JSON.parse(response.data[0].data.data);
-            handleSaveResponse(response.data[0].data, action);
-        }).catch(function (error) {
-            // handle error
-            console.log(error);
-        });
+        const response = await api.moodleRequest('local_moon_save_layout',  args);
+        response.data[0].data.data = JSON.parse(response.data[0].data.data);
+        handleSaveResponse(response.data[0].data, action);
     } else {
         const formData = new FormData(); // pass data as a form
         let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
@@ -429,54 +392,67 @@ function isJsonString(str) {
     return /^\s*(\{.*\}|\[.*\])\s*$/.test(str);
 }
 const selectedLayouts = ref([]);
-function callAjax() {
+
+function handleGetLayoutsResponse(responseData) {
+    items.value = responseData.data;
+    if (responseData.data.length > 0) {
+        if (props.modelValue === '') {
+            emit('update:modelValue', responseData.data[0].name);
+            // editLayout(responseData.data[0].name);
+        } else {
+            if (!isJsonString(props.modelValue) && selected_layout.value === '') {
+                const found = responseData.data.find(item => item.name === props.modelValue);
+                setTimeout(
+                    () => {
+                        if (!found) {
+                            emit('update:modelValue', responseData.data[0].name);
+                            selected_layout.value = responseData.data[0].name;
+                            // editLayout(responseData.data[0].name);
+                        } else {
+                            selected_layout.value = props.modelValue;
+                            // editLayout(props.modelValue);
+                        }
+                    }, 500
+                )
+            }
+        }
+        if (constant.cms_name === 'moodle') {
+            responseData.data.forEach(item => {
+                if (typeof item.layout !== 'undefined' && item.layout !== 'custom') {
+                    selectedLayouts.value.push(item.layout);
+                }
+            });
+        }
+    }
+}
+async function callAjax() {
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayouts&type=main_layouts&template="+constant.tpl_template_name+"&ts="+Date.now();
     if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayouts&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
-    }
-    if (process.env.NODE_ENV === 'development') {
-        url = "layout_ajax.txt?ts="+Date.now();
-    }
-
-    axios.get(url)
-        .then(function (response) {
-            if (response.data.status === 'success') {
-                items.value = response.data.data;
-                if (response.data.data.length > 0) {
-                    if (props.modelValue === '') {
-                        emit('update:modelValue', response.data.data[0].name);
-                        // editLayout(response.data.data[0].name);
-                    } else {
-                        if (!isJsonString(props.modelValue) && selected_layout.value === '') {
-                            const found = response.data.data.find(item => item.name === props.modelValue);
-                            setTimeout(
-                                () => {
-                                    if (!found) {
-                                        emit('update:modelValue', response.data.data[0].name);
-                                        selected_layout.value = response.data.data[0].name;
-                                        // editLayout(response.data.data[0].name);
-                                    } else {
-                                        selected_layout.value = props.modelValue;
-                                        // editLayout(props.modelValue);
-                                    }
-                                }, 500
-                            )
-                        }
-                    }
-                    if (constant.cms_name === 'moodle') {
-                        response.data.data.forEach(item => {
-                            if (typeof item.layout !== 'undefined' && item.layout !== 'custom') {
-                                selectedLayouts.value.push(item.layout);
-                            }
-                        });
-                    }
-                }
-            }
-        })
-        .catch(function (error) {
-            // handle error
-            console.log(error);
+        const response = await api.moodleRequest('local_moon_layout', {
+            theme: constant.template_name,
+            task: 'getlayouts',
+            filearea: 'main_layouts',
+            itemid: 0
         });
+        if (response.data[0].data.status === 'success') {
+            response.data[0].data.data = JSON.parse(response.data[0].data.data);
+            handleGetLayoutsResponse(response.data[0].data);
+        }
+    } else {
+        if (process.env.NODE_ENV === 'development') {
+            url = "layout_ajax.txt?ts="+Date.now();
+        }
+        axios.get(url)
+            .then(function (response) {
+                if (response.data.status === 'success') {
+                    handleGetLayoutsResponse(response.data);
+                }
+            })
+            .catch(function (error) {
+                // handle error
+                console.log(error);
+            });
+    }
 }
 const _formTitle = ref(null);
 function markAsDefault(name = '') {

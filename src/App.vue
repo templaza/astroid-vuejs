@@ -1,15 +1,18 @@
 <script setup>
 import Heading from "@/components/Heading.vue";
 import {onBeforeMount, onMounted, provide, ref} from "vue";
+import { createApi } from './services/api';
 import 'bootstrap/scss/bootstrap.scss'
 import './assets/base.scss'
 import Sidebar from "@/components/Sidebar.vue";
 import Main from "@/components/Main.vue";
 const astroid_config = JSON.parse(document.getElementById("astroid-script-options").innerHTML);
+const api = createApi(astroid_config.astroid_lib);
 const theme = ref('light');
 provide('theme', theme);
 provide('constant', astroid_config.astroid_lib);
 provide('language', astroid_config.astroid_lang);
+provide('api', api);
 window.Toast = bootstrap.Toast;
 window.Modal = bootstrap.Modal;
 onBeforeMount(()=>{
@@ -21,8 +24,8 @@ onBeforeMount(()=>{
   }
 })
 
-const pageIndex     = ref(new Object());
-const fieldSet_tabs = ref(new Object());
+const pageIndex     = ref({});
+const fieldSet_tabs = ref({});
 
 onMounted(() => {
     astroid_config.astroid_content.forEach((fieldSet, idx) => {

@@ -10,6 +10,7 @@ const props = defineProps({
 
 const theme = inject('theme', 'light');
 const constant = inject('constant', {});
+const api = inject('api');
 const template_link = props.config.astroid_lib.jtemplate_link.replace(/\&amp\;/g, '&');
 const save_icon = ref('fa-floppy-disk');
 const cache_icon = ref('fa-eraser');
@@ -63,36 +64,18 @@ function showToast(icon, header, body, color = 'green') {
     toastBootstrap.show();
 }
 
-function clearCache() {
+async function clearCache() {
     cache_icon.value = 'fa-sync fa-spin';
     if (constant.cms_name === 'moodle') {
-        const method = 'local_moon_action';
-        const url = `${constant.site_url}/lib/ajax/service.php`;
-        const args = {
+        const response = await api.moodleRequest('local_moon_action', {
             theme: constant.template_name,
             task: 'clearCache',
-        };
-        const requests = [
-            {
-                index: 0,
-                methodname: method,
-                args: args
-            }
-        ];
-        axios.post(url, JSON.stringify(requests), {
-            params: {
-                sesskey: constant.astroid_admin_token,
-                info: method
-            }
-        }).then(function (response) {
-            if (response.data[0].data.status === 'success') {
-                showToast('fa-solid fa-eraser', 'Cache Cleared', response.data[0].data.message, 'darkviolet');
-                cache_icon.value = 'fa-eraser';
-            }
-        }).catch(function (error) {
-            // handle error
-            console.log(error);
         });
+
+        if (response.data[0].data.status === 'success') {
+            showToast('fa-solid fa-eraser', 'Cache Cleared', response.data[0].data.message, 'darkviolet');
+            cache_icon.value = 'fa-eraser';
+        }
     } else {
         const url = props.config.astroid_lib.base_url+'/index.php?option=com_ajax&astroid=clear-cache&template='+props.config.astroid_lib.template_name;
         axios.get(url)

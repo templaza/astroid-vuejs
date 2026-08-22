@@ -11,6 +11,7 @@ const props = defineProps({
 });
 const constant  =   inject('constant', {});
 const language  =   inject('language', []);
+const api       =   inject('api');
 const items     =   ref([]);
 const editItem  =   ref(false);
 const layout    =   ref('{"sections":[]}')
@@ -287,26 +288,38 @@ function exportLayout() {
     URL.revokeObjectURL(url);
     return true;
 }
-
-function callAjax() {
-    let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayouts&type="+props.type+"&template="+constant.tpl_template_name+"&ts="+Date.now();
+function handleGetLayoutsResponse(responseData) {
+    items.value = responseData.data;
+    emit('update:modelValue', '');
+}
+async function callAjax() {
     if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayouts&filearea=${props.type}&itemid=0&sesskey=${constant.astroid_admin_token}`;
-    }
-    if (process.env.NODE_ENV === 'development') {
-        url = "layout_ajax.txt?ts="+Date.now();
-    }
-    axios.get(url)
-    .then(function (response) {
-        if (response.data.status === 'success') {
-            items.value = response.data.data;
-            emit('update:modelValue', '');
+        const response = await api.moodleRequest('local_moon_action', {
+            theme: constant.template_name,
+            task: 'getlayouts',
+            filearea: props.type,
+            itemid: 0
+        });
+        if (response.data[0].data.status === 'success') {
+            response.data[0].data.data = JSON.parse(response.data[0].data.data);
+            handleGetLayoutsResponse(response.data[0].data);
         }
-    })
-    .catch(function (error) {
-        // handle error
-        console.log(error);
-    });
+    } else {
+        let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayouts&type="+props.type+"&template="+constant.tpl_template_name+"&ts="+Date.now();
+        if (process.env.NODE_ENV === 'development') {
+            url = "layout_ajax.txt?ts="+Date.now();
+        }
+        axios.get(url)
+            .then(function (response) {
+                if (response.data.status === 'success') {
+                    handleGetLayoutsResponse(response.data);
+                }
+            })
+            .catch(function (error) {
+                // handle error
+                console.log(error);
+            });
+    }
 }
 const _formTitle = ref(null);
 const checkAll = ref(false);
