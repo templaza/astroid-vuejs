@@ -428,7 +428,7 @@ function handleGetLayoutsResponse(responseData) {
 async function callAjax() {
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayouts&type=main_layouts&template="+constant.tpl_template_name+"&ts="+Date.now();
     if (constant.cms_name === 'moodle') {
-        const response = await api.moodleRequest('local_moon_layout', {
+        const response = await api.moodleRequest('local_moon_action', {
             theme: constant.template_name,
             task: 'getlayouts',
             filearea: 'main_layouts',

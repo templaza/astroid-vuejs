@@ -10,6 +10,7 @@ const props = defineProps({
 });
 const constant = inject('constant', {});
 const language  =   inject('language', []);
+const api = inject('api');
 
 const _showMediaContent = ref([]);
 const _showDirLocation  = ref([]);
@@ -92,32 +93,44 @@ function generateData(json = null) {
   }
 }
 
-function callAjax() {
-    let query = '/index.php?option=com_ajax&astroid=media&action=library&asset=com_templates&ts='+Date.now();
-    if (constant.cms_name === 'moodle') {
-        query = `/local/moon/ajax/action.php?theme=${constant.template_name}&task=list&filearea=${_media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
-    }
-    let url = constant.base_url + query;
-    if (process.env.NODE_ENV === 'development') {
-        url = "media_ajax.txt?ts="+Date.now();
-    }
-    const formData = new FormData(); // pass data as a form
-    formData.append("folder", _currentFolder.value);
-    formData.append(constant.astroid_admin_token, 1);
+async function callAjax() {
     _isloading.value = true;
-    axios.post(url, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    }).then(function (response) {
-        if (response.data.status === 'success') {
-            generateData(response.data.data);
+    if (constant.cms_name === 'moodle') {
+        const response = await api.moodleRequest('local_moon_media', {
+            theme: constant.template_name,
+            task: 'list',
+            filearea: _media,
+            itemid: 0,
+            folder: _currentFolder.value
+        });
+        if (response.data[0].data.status === 'success') {
+            response.data[0].data.data = JSON.parse(response.data[0].data.data);
+            generateData(response.data[0].data.data);
             _isloading.value = false;
         }
-    }).catch(function (error) {
-        // handle error
-        console.log(error);
-    });
+    } else {
+        let url = constant.base_url + '/index.php?option=com_ajax&astroid=media&action=library&asset=com_templates&ts='+Date.now();
+        if (process.env.NODE_ENV === 'development') {
+            url = "media_ajax.txt?ts="+Date.now();
+        }
+        const formData = new FormData(); // pass data as a form
+        formData.append("folder", _currentFolder.value);
+        formData.append(constant.astroid_admin_token, 1);
+        axios.post(url, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }).then(function (response) {
+            if (response.data.status === 'success') {
+                generateData(response.data.data);
+                _isloading.value = false;
+            }
+        }).catch(function (error) {
+            // handle error
+            console.log(error);
+            _isloading.value = false;
+        });
+    }
 }
 
 function selectMedia(item) {
@@ -185,88 +198,125 @@ function initFormEdit(type, item = null) {
         newFolderName.value = '';
     }
 }
-function createFolder() {
+async function createFolder() {
     if (newFolderName.value.trim() === '') {
         alert('Folder Name can not empty!');
         newFolderInput.value.focus();
         return false;
     }
-    let url = constant.site_url+`administrator/index.php?option=com_ajax&astroid=media&action=createFolder&ts=`+Date.now();
-    if (constant.cms_name === `moodle`) {
-        url = constant.site_url + `/local/moon/ajax/action.php?theme=${constant.template_name}&task=folder&filearea=${_media}&itemid=0&sesskey=${constant.astroid_admin_token}`
-    }
-    const formData = new FormData(); // pass data as a form
-    formData.append("name", newFolderName.value.trim());
-    if (constant.cms_name === `moodle`) {
-        formData.append("dir", _currentFolder.value);
-    } else {
-        formData.append("dir", 'images/'+_currentFolder.value);
-    }
 
-    formData.append(constant.astroid_admin_token, 1);
-    axios.post(url, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    }).then((response) => {
-        document.getElementById(props.field.input.id+`close_edit_item_dialog`).click();
-    }).catch((err) => {
-        console.error(err);
-    });
+    if (constant.cms_name === `moodle`) {
+        const response = await api.moodleRequest('local_moon_media', {
+            theme: constant.template_name,
+            task: 'folder',
+            filearea: _media,
+            itemid: 0,
+            folder: _currentFolder.value,
+            name: newFolderName.value.trim()
+        });
+        if (response.data[0].error === false) {
+            document.getElementById(props.field.input.id+`close_edit_item_dialog`).click();
+        } else {
+            alert(response.data[0].exception.message);
+        }
+    } else {
+        let url = constant.site_url+`administrator/index.php?option=com_ajax&astroid=media&action=createFolder&ts=`+Date.now();
+        const formData = new FormData(); // pass data as a form
+        formData.append("name", newFolderName.value.trim());
+        formData.append("dir", 'images/'+_currentFolder.value);
+
+        formData.append(constant.astroid_admin_token, 1);
+        axios.post(url, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }).then((response) => {
+            document.getElementById(props.field.input.id+`close_edit_item_dialog`).click();
+        }).catch((err) => {
+            console.error(err);
+        });
+    }
 }
-function rename() {
+async function rename() {
     if (newFolderName.value.trim() === '') {
         alert('Item Name can not empty!');
         newFolderInput.value.focus();
         return false;
     }
-    let url = constant.site_url+`administrator/index.php?option=com_ajax&astroid=media&action=rename&ts=`+Date.now();
-    const formData = new FormData(); // pass data as a form
-    formData.append("name", oldFolderName.name);
-    formData.append("type", oldFolderName.type);
-    formData.append("new_name", newFolderName.value.trim());
+
     if (constant.cms_name === `moodle`) {
-        url = constant.site_url + `/local/moon/ajax/action.php?theme=${constant.template_name}&task=rename&filearea=${_media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
-        formData.append("dir", _currentFolder.value);
+        const response = await api.moodleRequest('local_moon_media', {
+            theme: constant.template_name,
+            task: 'rename',
+            filearea: _media,
+            itemid: 0,
+            folder: _currentFolder.value,
+            name: oldFolderName.name,
+            type: oldFolderName.type,
+            new_name: newFolderName.value.trim()
+        });
+        if (response.data[0].error === false) {
+            document.getElementById(props.field.input.id+`close_edit_item_dialog`).click();
+        } else {
+            alert(response.data[0].exception.message);
+        }
     } else {
+        let url = constant.site_url+`administrator/index.php?option=com_ajax&astroid=media&action=rename&ts=`+Date.now();
+        const formData = new FormData(); // pass data as a form
+        formData.append("name", oldFolderName.name);
+        formData.append("type", oldFolderName.type);
+        formData.append("new_name", newFolderName.value.trim());
         formData.append("dir", 'images/'+_currentFolder.value);
+        formData.append(constant.astroid_admin_token, 1);
+        axios.post(url, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }).then((response) => {
+            document.getElementById(props.field.input.id+`close_edit_item_dialog`).click();
+        }).catch((err) => {
+            console.error(err);
+        });
     }
-    formData.append(constant.astroid_admin_token, 1);
-    axios.post(url, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    }).then((response) => {
-        document.getElementById(props.field.input.id+`close_edit_item_dialog`).click();
-    }).catch((err) => {
-        console.error(err);
-    });
 }
 
-function remove(item) {
+async function remove(item) {
     if (!confirm('This item will be deleted. You cannot undo this action. Are you sure?')) {
         return false;
     }
-    let url = constant.site_url+`administrator/index.php?option=com_ajax&astroid=media&action=remove&ts=`+Date.now();
-    const formData = new FormData(); // pass data as a form
-    formData.append("name", item.name);
-    formData.append("type", item.type);
+
     if (constant.cms_name === `moodle`) {
-        url = constant.site_url + `/local/moon/ajax/action.php?theme=${constant.template_name}&task=delete&filearea=${_media}&itemid=0&sesskey=${constant.astroid_admin_token}`;
-        formData.append("dir", _currentFolder.value);
+        const response = await api.moodleRequest('local_moon_media', {
+            theme: constant.template_name,
+            task: 'delete',
+            filearea: _media,
+            itemid: 0,
+            folder: _currentFolder.value,
+            name: item.name,
+            type: item.type
+        });
+        if (response.data[0].error === false) {
+            callAjax();
+        } else {
+            alert(response.data[0].exception.message);
+        }
     } else {
+        let url = constant.site_url+`administrator/index.php?option=com_ajax&astroid=media&action=remove&ts=`+Date.now();
+        const formData = new FormData(); // pass data as a form
+        formData.append("name", item.name);
+        formData.append("type", item.type);
         formData.append("dir", 'images/'+_currentFolder.value);
+        formData.append(constant.astroid_admin_token, 1);
+        axios.post(url, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }).then((response) => {
+            callAjax();
+        }).catch((err) => {
+            console.error(err);
+        });
     }
-    formData.append(constant.astroid_admin_token, 1);
-    axios.post(url, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    }).then((response) => {
-        callAjax();
-    }).catch((err) => {
-        console.error(err);
-    });
 }
 </script>
 <template>
@@ -314,8 +364,9 @@ function remove(item) {
                         </div>
                     </div>
                     <div v-else>
-                      <DropZone 
-                        :url="constant.cms_name === `moodle` ? constant.base_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=upload&filearea=${_media}&itemid=0&folder=${_currentFolder}&sesskey=${constant.astroid_admin_token}` : props.field.input.ajax+`&action=upload&media=`+_media+`&dir=images/`+_currentFolder"
+                      <DropZone
+                        :media="_media"
+                        :folder="constant.cms_name === `moodle` ? _currentFolder : `images/`+_currentFolder"
                         :click-upload="_clickUpload"
                         @update:media="uploadReset" />
                     </div>

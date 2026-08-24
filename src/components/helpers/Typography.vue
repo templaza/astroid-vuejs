@@ -9,6 +9,7 @@ const emit = defineEmits(['update:modelValue']);
 const props = defineProps(['modelValue', 'field', 'colorMode']);
 const theme = inject('theme', 'light');
 const constant = inject('constant', {});
+const api = inject('api');
 const font_styles = [
     {'value':'bold', 'text':'<strong>Bold</strong>'},
     {'value':'italic', 'text':'<em>Italic</em>'},
@@ -70,38 +71,52 @@ function getFontType(font_face) {
         font_type.value = 'google';
     }
 }
-
-onMounted(()=>{
-    let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=google-fonts&template="+constant.template_name+"&ts="+Date.now();
-    if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getfonts&filearea=fonts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+function handleGetFontsResponse(responseData) {
+    options.system = responseData.system;
+    options.google = responseData.google;
+    options.local = responseData.local;
+    if (options.local.length > 1) {
+        fonttypes.value.push('local');
     }
-    if (process.env.NODE_ENV === 'development') {
-        url = "fonts_ajax.txt?ts="+Date.now();
-    }
+    const font_name = typeof props.modelValue['font_face'] !== 'undefined' && props.modelValue['font_face'] ? props.modelValue['font_face'].split(':')[0] : '';
+    fontSelected.value = responseData[font_type.value].find(element => font_name === element.value.split(':')[0]) || {value: "", text: ""};
+}
+onMounted(async ()=>{
     Object.keys(props.field.input.value).forEach(key => {
         if (typeof props.modelValue[key] === 'undefined' && typeof props.field.input.value[key] !== 'undefined') {
             props.modelValue[key] = props.field.input.value[key];
         }
     })
     getFontType((typeof props.modelValue['font_face'] !== 'undefined' && props.modelValue['font_face']) ? props.modelValue['font_face'] : (props.field.input.value['font_face'] || ''));
-    axios.get(url)
-    .then(function (response) {
-        if (response.status === 200) {
-            options.system = response.data.system;
-            options.google = response.data.google;
-            options.local = response.data.local;
-            if (options.local.length > 1) {
-                fonttypes.value.push('local');
-            }
-            const font_name = typeof props.modelValue['font_face'] !== 'undefined' && props.modelValue['font_face'] ? props.modelValue['font_face'].split(':')[0] : '';
-            fontSelected.value = response.data[font_type.value].find(element => font_name === element.value.split(':')[0]) || {value: "", text: ""};
+
+    if (constant.cms_name === 'moodle') {
+        const response = await api.moodleRequest('local_moon_action', {
+            theme: constant.template_name,
+            task: 'getfonts',
+            filearea: 'fonts',
+            itemid: 0
+        });
+        if (response.data[0].data.status === 'success') {
+            response.data[0].data.data = JSON.parse(response.data[0].data.data);
+            handleGetFontsResponse(response.data[0].data.data);
         }
-    })
-    .catch(function (error) {
-        // handle error
-        console.log(error);
-    });
+    } else {
+        let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=google-fonts&template="+constant.template_name+"&ts="+Date.now();
+        if (process.env.NODE_ENV === 'development') {
+            url = "fonts_ajax.txt?ts="+Date.now();
+        }
+        axios.get(url)
+            .then(function (response) {
+                if (response.status === 200) {
+                    handleGetFontsResponse(response.data);
+                }
+            })
+            .catch(function (error) {
+                // handle error
+                console.log(error);
+            });
+    }
+
     if (props.modelValue['font_color'].trim() !== '') {
         try {
             const tmp = JSON.parse(props.modelValue['font_color']);
