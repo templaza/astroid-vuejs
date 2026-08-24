@@ -5,6 +5,7 @@ import axios from "axios";
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps(['modelValue', 'field']);
 const constant  =   inject('constant', {});
+const api = inject('api');
 const btnIcon = ref('Select Icon');
 const icons = ref([]);
 const searchText = ref('');
@@ -23,26 +24,39 @@ const showIcons = computed(()=>{
     });
     return tmp;
 })
-
-onMounted(()=>{
-    let url = "index.php?option=com_ajax&astroid=search&format=html&search=icon&source="+props.field.input.source+"&ts="+Date.now();
-    if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getIcons&source=${props.field.input.source}&filearea=${props.field.input.source}_icon&itemid=0&sesskey=${constant.astroid_admin_token}`;
-    }
-    if (process.env.NODE_ENV === 'development') {
-        url = "icon_ajax.txt?ts="+Date.now();
-    }
-    axios.get(url)
-    .then(function (response) {
-        if (response.status === 200 && response.data.success === true) {
-            icons.value = response.data.results;
-            response.data.results.forEach(element => {
-                if (props.modelValue === element.value) {
-                    iconSelected.value = element;
-                }
-            });
+function handleIconResponse(responseData) {
+    icons.value = responseData.results;
+    responseData.results.forEach(element => {
+        if (props.modelValue === element.value) {
+            iconSelected.value = element;
         }
-    })
+    });
+}
+onMounted(async ()=>{
+    if (constant.cms_name === 'moodle') {
+        const response = await api.moodleRequest('local_moon_icon', {
+            theme: constant.template_name,
+            task: 'getIcons',
+            filearea: props.field.input.source + '_icon',
+            itemid: 0,
+            source: props.field.input.source
+        });
+        if (response.data[0].data.status === 'success') {
+            response.data[0].data.data = JSON.parse(response.data[0].data.data);
+            handleIconResponse(response.data[0].data.data);
+        }
+    } else {
+        let url = "index.php?option=com_ajax&astroid=search&format=html&search=icon&source="+props.field.input.source+"&ts="+Date.now();
+        if (process.env.NODE_ENV === 'development') {
+            url = "icon_ajax.txt?ts="+Date.now();
+        }
+        axios.get(url)
+            .then(function (response) {
+                if (response.status === 200 && response.data.success === true) {
+                    handleIconResponse(response.data);
+                }
+            })
+    }
 })
 
 function selectIcon(icon) {

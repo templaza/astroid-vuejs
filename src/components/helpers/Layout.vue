@@ -17,6 +17,7 @@ const props = defineProps({
 });
 const constant  =   inject('constant', {});
 const language  =   inject('language', []);
+const api    =   inject('api');
 const serviceUrl = `${constant.site_url}/lib/ajax/service.php`;
 
 onBeforeMount(()=>{
@@ -177,61 +178,43 @@ function selectElement(el, type = '') {
     element.value = el;
     _showElement.value = true;
 }
-function addElement(addon) {
+
+function hanleLayoutResponse (responseData) {
+    if (responseData.status === 'success') {
+        let sublayout_data = JSON.parse(responseData.data.data);
+        const sec = Date.now() * 1000 + Math.random() * 1000;
+        layout.value.sections.every((section, index) => {
+            if (element.value.id === section.id) {
+                sublayout_data.sections.forEach((section, sub_idx) => {
+                    layout.value.sections.splice(index+sub_idx+1, 0, {
+                        id: sec.toString(16).replace(/\./g, "").padEnd(14, "0")+Math.trunc(Math.random() * 100000000),
+                        type: section.type,
+                        rows: section.rows,
+                        params: section.params,
+                        state: 1
+                    });
+                });
+                // continue
+                element.value = {};
+                return false;
+            }
+            return true;
+        });
+    }
+}
+async function addElement(addon) {
     if (select_element_type.value === 'loadSublayout') {
         let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
-        let sublayout_data = {};
-        const sec = Date.now() * 1000 + Math.random() * 1000;
         if (constant.cms_name === 'moodle') {
-            // url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayout&filearea=layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
-            const method = 'local_moon_layout';
-            const args = {
+            const response = await api.moodleRequest('local_moon_layout', {
                 theme: constant.template_name,
                 task: 'getlayout',
                 filearea: 'layouts',
                 itemid: 0,
                 name: addon.name
-            };
-
-            const requests = [
-                {
-                    index: 0,
-                    methodname: method,
-                    args: args
-                }
-            ];
-
-            axios.post(serviceUrl, JSON.stringify(requests), {
-                params: {
-                    sesskey: constant.astroid_admin_token,
-                    info: method
-                }
-            }).then(function (response) {
-                const responseData = response.data[0].data;
-                if (responseData.status === 'success') {
-                    sublayout_data = JSON.parse(responseData.data);
-                    layout.value.sections.every((section, index) => {
-                        if (element.value.id === section.id) {
-                            sublayout_data.sections.forEach((section, sub_idx) => {
-                                layout.value.sections.splice(index+sub_idx+1, 0, {
-                                    id: sec.toString(16).replace(/\./g, "").padEnd(14, "0")+Math.trunc(Math.random() * 100000000),
-                                    type: section.type,
-                                    rows: section.rows,
-                                    params: section.params,
-                                    state: 1
-                                });
-                            });
-                            // continue
-                            element.value = {};
-                            return false;
-                        }
-                        return true;
-                    });
-                }
-            }).catch(function (error) {
-                // handle error
-                console.log(error);
             });
+            response.data[0].data.data = JSON.parse(response.data[0].data.data);
+            hanleLayoutResponse(response.data[0].data);
         } else {
             if (process.env.NODE_ENV === 'development') {
                 url = "editlayout_ajax.txt?ts="+Date.now();
@@ -246,26 +229,7 @@ function addElement(addon) {
                     "Content-Type": "multipart/form-data",
                 },
             }).then((response) => {
-                if (response.data.status === 'success') {
-                    sublayout_data = JSON.parse(response.data.data.data);
-                    layout.value.sections.every((section, index) => {
-                        if (element.value.id === section.id) {
-                            sublayout_data.sections.forEach((section, sub_idx) => {
-                                layout.value.sections.splice(index+sub_idx+1, 0, {
-                                    id: sec.toString(16).replace(/\./g, "").padEnd(14, "0")+Math.trunc(Math.random() * 100000000),
-                                    type: section.type,
-                                    rows: section.rows,
-                                    params: section.params,
-                                    state: 1
-                                });
-                            });
-                            // continue
-                            element.value = {};
-                            return false;
-                        }
-                        return true;
-                    });
-                }
+                hanleLayoutResponse(response.data);
             }).catch((err) => {
                 console.error(err);
             });
@@ -375,65 +339,82 @@ function openSaveLayout(data) {
 function onFileChange(e) {
     files.value = e.target.files || e.dataTransfer.files;
 }
-function saveSublayout() {
-    let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
-    if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=savelayout&filearea=layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
+function handleSaveResponse(responseData) {
+    const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveSectionToast`);
+    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
+    if (responseData.status === 'success') {
+        toast_msg.icon = 'fa-solid fa-rocket';
+        toast_msg.header = 'Sub-Layout '+formInfo.title+' is saved.';
+        toast_msg.body = 'You can use it to contribute to your layout builder.';
+        toast_msg.color = 'green';
+        save_disabled.value = false;
+        formInfo.title = '';
+        formInfo.desc = '';
+        formInfo.name = '';
+        formInfo.thumbnail = '';
+        files.value = null;
+        document.getElementById(props.field.input.id+`_saveLayout_form`).reset();
+        sublayout.value = '{"sections":[]}';
+        emit('update:subLayouts');
+        _showSublayoutModal.value = false;
+    } else {
+        toast_msg.icon = 'fa-regular fa-face-sad-tear';
+        toast_msg.header = 'Sub-layout '+formInfo.title+' is not saved.';
+        toast_msg.body = responseData.message;
+        toast_msg.color = 'red';
     }
+    toastBootstrap.show();
+}
+async function saveSublayout() {
     if (!formInfo.title) {
         alert('You have to input the Title')
         _subFormTitle.value.focus();
         return false;
-    } 
-    const formData = new FormData(); // pass data as a form
-    const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveSectionToast`);
-    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-    formData.append(constant.astroid_admin_token, 1);
-    formData.append('title', formInfo.title);
-    formData.append('desc', formInfo.desc);
-    formData.append('data', sublayout.value);
-    formData.append('thumbnail_old', formInfo.thumbnail);
-    if (files.value !== null && files.value.length) {
-        formData.append('thumbnail', files.value[0]);
     }
-    if (formInfo.name !== ``) {
-        formData.append('name', formInfo.name);
-    }
-    formData.append('template', constant.tpl_template_name);
     save_disabled.value = true;
-            
-    axios.post(url, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    })
-    .then((response) => {
-        if (response.data.status === 'success') {
-            toast_msg.icon = 'fa-solid fa-rocket';
-            toast_msg.header = 'Sub-Layout '+formInfo.title+' is saved.';
-            toast_msg.body = 'You can use it to contribute to your layout builder.';
-            toast_msg.color = 'green';
-            save_disabled.value = false;
-            formInfo.title = '';
-            formInfo.desc = '';
-            formInfo.name = '';
-            formInfo.thumbnail = '';
-            files.value = null;
-            document.getElementById(props.field.input.id+`_saveLayout_form`).reset();
-            sublayout.value = '{"sections":[]}';
-            emit('update:subLayouts');
-            _showSublayoutModal.value = false;
-        } else {
-            toast_msg.icon = 'fa-regular fa-face-sad-tear';
-            toast_msg.header = 'Sub-layout '+formInfo.title+' is not saved.';
-            toast_msg.body = response.data.message;
-            toast_msg.color = 'red';
+    if (constant.cms_name === 'moodle') {
+        let args = {
+            theme: constant.template_name,
+            task: 'savelayout',
+            filearea: 'layouts',
+            itemid: 0,
+            data: sublayout.value,
+            title: formInfo.title,
+            desc: formInfo.desc,
+            thumbnail_old: formInfo.thumbnail,
+            name: '',
+        };
+        if (formInfo.name !== ``) {
+            args.name = formInfo.name;
         }
-        toastBootstrap.show();
-    })
-    .catch((err) => {
-        console.error(err);
-    });
+        const response = await api.moodleRequest('local_moon_save_layout',  args);
+        response.data[0].data.data = JSON.parse(response.data[0].data.data);
+        handleSaveResponse(response.data[0].data);
+    } else {
+        let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
+        const formData = new FormData(); // pass data as a form
+        formData.append(constant.astroid_admin_token, 1);
+        formData.append('title', formInfo.title);
+        formData.append('desc', formInfo.desc);
+        formData.append('data', sublayout.value);
+        formData.append('thumbnail_old', formInfo.thumbnail);
+        if (files.value !== null && files.value.length) {
+            formData.append('thumbnail', files.value[0]);
+        }
+        if (formInfo.name !== ``) {
+            formData.append('name', formInfo.name);
+        }
+        formData.append('template', constant.tpl_template_name);
+        axios.post(url, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }).then((response) => {
+            handleSaveResponse(response.data);
+        }).catch((err) => {
+            console.error(err);
+        });
+    }
 }
 </script>
 <template>

@@ -337,55 +337,58 @@ function resetValues() {
     layout.value = default_layout.value;
     resetFormInfo();
 }
-function deleteLayout(item = null) {
+function handleDeleteLayoutResponse(responseData) {
+    const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
+    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
+    if (responseData.status === 'success') {
+        toast_msg.icon = 'fa-solid fa-rocket';
+        toast_msg.header = 'Layouts deleted.';
+        toast_msg.body = responseData.message;
+        toast_msg.color = 'green';
+        callAjax();
+    } else {
+        toast_msg.icon = 'fa-regular fa-face-sad-tear';
+        toast_msg.header = 'Error!';
+        toast_msg.body = responseData.message;
+        toast_msg.color = 'red';
+    }
+    toastBootstrap.show();
+}
+async function deleteLayout(item = null) {
     if (item !== null) {
         checklist.value = [item.name];
     }
     if (confirm(language.JGLOBAL_CONFIRM_DELETE) && checklist.value.length) {
-        let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=deletelayouts&ts="+Date.now();
         if (constant.cms_name === 'moodle') {
-            url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=deletelayouts&filearea=main_layouts&itemid=0&sesskey=${constant.astroid_admin_token}`;
-        }
-        const formData = new FormData(); // pass data as a form
-        const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
-        const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-        formData.append(constant.astroid_admin_token, 1);
-        checklist.value.forEach(element => {
-            formData.append('layouts[]', element);
-        });
-        formData.append('template', constant.tpl_template_name);
-        formData.append('type', 'main_layouts');
-        axios.post(url, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        })
-            .then((response) => {
-                if (response.data.status === 'success') {
-                    if (response.data.data) {
-                        toast_msg.icon = 'fa-solid fa-rocket';
-                        toast_msg.header = 'Layouts deleted.';
-                        toast_msg.body = 'You cannot undo this process.';
-                        toast_msg.color = 'green';
-                    } else {
-                        toast_msg.icon = 'fa-regular fa-face-sad-tear';
-                        toast_msg.header = 'Error!';
-                        toast_msg.body = 'Layouts are not deleted.';
-                        toast_msg.color = 'red';
-                    }
-                    callAjax();
-                    toastBootstrap.show();
-                } else {
-                    toast_msg.icon = 'fa-regular fa-face-sad-tear';
-                    toast_msg.header = 'Error!';
-                    toast_msg.body = response.data.message;
-                    toast_msg.color = 'red';
-                    toastBootstrap.show();
-                }
-            })
-            .catch((err) => {
+            const response = await api.moodleRequest('local_moon_delete_layout', {
+                theme: constant.template_name,
+                task: 'deletelayouts',
+                filearea: 'main_layouts',
+                itemid: 0,
+                layouts: checklist.value
+            });
+            if (response.data[0].data.status === 'success') {
+                handleDeleteLayoutResponse(response.data[0].data);
+            }
+        } else {
+            let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=deletelayouts&ts="+Date.now();
+            const formData = new FormData(); // pass data as a form
+            formData.append(constant.astroid_admin_token, 1);
+            checklist.value.forEach(element => {
+                formData.append('layouts[]', element);
+            });
+            formData.append('template', constant.tpl_template_name);
+            formData.append('type', 'main_layouts');
+            axios.post(url, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }).then((response) => {
+                handleDeleteLayoutResponse(response.data);
+            }).catch((err) => {
                 console.error(err);
             });
+        }
     }
 }
 function isJsonString(str) {

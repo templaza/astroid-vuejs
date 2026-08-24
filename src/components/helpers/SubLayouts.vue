@@ -41,39 +41,50 @@ onUpdated(()=>{
         callAjax();
     }
 })
-
-function editLayout(filename = '') {
+function handleLayoutResponse(responseData, filename)
+{
+    if (responseData.status === 'success') {
+        layout.value = responseData.data.data;
+        formInfo.title = responseData.data.title;
+        formInfo.desc = responseData.data.desc;
+        formInfo.thumbnail = responseData.data.thumbnail;
+        formInfo.name = filename;
+        editItem.value = true;
+    }
+}
+async function editLayout(filename = '') {
     if (filename !== '') {
-        let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
         if (constant.cms_name === 'moodle') {
-            url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayout&filearea=${props.type}&itemid=0&sesskey=${constant.astroid_admin_token}`;
-        }
-        if (process.env.NODE_ENV === 'development') {
-            url = "editlayout_ajax.txt?ts="+Date.now();
-        }
-        const formData = new FormData(); // pass data as a form
-        formData.append(constant.astroid_admin_token, 1);
-        formData.append('name', filename);
-        formData.append('template', constant.tpl_template_name);
-        formData.append('type', props.type);
-        axios.post(url, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        })
-        .then((response) => {
-            if (response.data.status === 'success') {
-                layout.value = response.data.data.data;
-                formInfo.title = response.data.data.title;
-                formInfo.desc = response.data.data.desc;
-                formInfo.thumbnail = response.data.data.thumbnail;
-                formInfo.name = filename;
-                editItem.value = true;
+            const response = await api.moodleRequest('local_moon_layout',  {
+                theme: constant.template_name,
+                task: 'getlayout',
+                filearea: props.type,
+                itemid: 0,
+                name: filename
+            });
+
+            response.data[0].data.data = JSON.parse(response.data[0].data.data);
+            handleLayoutResponse(response.data[0].data, filename);
+        } else {
+            let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
+            if (process.env.NODE_ENV === 'development') {
+                url = "editlayout_ajax.txt?ts="+Date.now();
             }
-        })
-        .catch((err) => {
-            console.error(err);
-        });
+            const formData = new FormData(); // pass data as a form
+            formData.append(constant.astroid_admin_token, 1);
+            formData.append('name', filename);
+            formData.append('template', constant.tpl_template_name);
+            formData.append('type', props.type);
+            axios.post(url, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }).then((response) => {
+                handleLayoutResponse(response.data, filename);
+            }).catch((err) => {
+                console.error(err);
+            });
+        }
     } else {
         editItem.value = true;
     }
@@ -82,9 +93,6 @@ function editLayout(filename = '') {
 const reloadLayout = ref(false);
 function loadDefault() {
     let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=getlayout&ts="+Date.now();
-    if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=getlayout&filearea=${props.type}&itemid=0&sesskey=${constant.astroid_admin_token}`;
-    }
     if (process.env.NODE_ENV === 'development') {
         url = "editlayout_ajax.txt?ts="+Date.now();
     }
@@ -96,14 +104,12 @@ function loadDefault() {
         headers: {
             "Content-Type": "multipart/form-data",
         },
-    })
-    .then((response) => {
+    }).then((response) => {
         if (response.data.status === 'success') {
             reloadLayout.value = true;
             layout.value = response.data.data.data;
         }
-    })
-    .catch((err) => {
+    }).catch((err) => {
         console.error(err);
     });
 }
@@ -111,8 +117,30 @@ function loadDefault() {
 function onFileChange(e) {
     files.value = e.target.files || e.dataTransfer.files;
 }
-
-function saveLayout(action = 'save') {
+function handleSaveResponse(responseData, action) {
+    const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
+    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
+    if (responseData.status === 'success') {
+        toast_msg.icon = 'fa-solid fa-rocket';
+        toast_msg.header = 'Sub-Layout '+formInfo.title+' is saved.';
+        toast_msg.body = 'You can use it to contribute to your layout builder.';
+        toast_msg.color = 'green';
+        save_disabled.value = false;
+        if (action !== 'apply') {
+            editItem.value = false;
+            resetValues();
+            callAjax();
+            document.getElementById(props.field.input.id+`_saveLayout_close`).click();
+        }
+    } else {
+        toast_msg.icon = 'fa-regular fa-face-sad-tear';
+        toast_msg.header = 'Sub-layout '+formInfo.title+' is not saved.';
+        toast_msg.body = responseData.message;
+        toast_msg.color = 'red';
+    }
+    toastBootstrap.show();
+}
+async function saveLayout(action = 'save') {
     if (formInfo.title === '') {
         if (action === 'save_dialog') {
             alert('You have to input the Title')
@@ -127,58 +155,53 @@ function saveLayout(action = 'save') {
             return true;
         }
     }
-    let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
+
     if (constant.cms_name === 'moodle') {
-        url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=savelayout&filearea=${props.type}&itemid=0&sesskey=${constant.astroid_admin_token}`;
-    }
-    const formData = new FormData(); // pass data as a form
-    const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
-    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-    formData.append(constant.astroid_admin_token, 1);
-    formData.append('title', formInfo.title);
-    formData.append('desc', formInfo.desc);
-    formData.append('data', layout.value);
-    formData.append('thumbnail_old', formInfo.thumbnail);
-    formData.append('default', formInfo.default);
-    if (files.value !== null && files.value.length) {
-        formData.append('thumbnail', files.value[0]);
-    }
-    if (formInfo.name !== ``) {
-        formData.append('name', formInfo.name);
-    }
-    formData.append('template', constant.tpl_template_name);
-    formData.append('type', props.type);
-    save_disabled.value = true;
-            
-    axios.post(url, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    })
-    .then((response) => {
-        if (response.data.status === 'success') {
-            toast_msg.icon = 'fa-solid fa-rocket';
-            toast_msg.header = 'Sub-Layout '+formInfo.title+' is saved.';
-            toast_msg.body = 'You can use it to contribute to your layout builder.';
-            toast_msg.color = 'green';
-            save_disabled.value = false;
-            if (action !== 'apply') {
-                editItem.value = false;
-                resetValues();
-                callAjax();
-                document.getElementById(props.field.input.id+`_saveLayout_close`).click();
-            }
-        } else {
-            toast_msg.icon = 'fa-regular fa-face-sad-tear';
-            toast_msg.header = 'Sub-layout '+formInfo.title+' is not saved.';
-            toast_msg.body = response.data.message;
-            toast_msg.color = 'red';
+        let args = {
+            theme: constant.template_name,
+            task: 'savelayout',
+            filearea: props.type,
+            itemid: 0,
+            title: formInfo.title,
+            desc: formInfo.desc,
+            data: layout.value,
+            thumbnail_old: formInfo.thumbnail,
+            name: '',
+        };
+        if (formInfo.name !== ``) {
+            args.name = formInfo.name;
         }
-        toastBootstrap.show();
-    })
-    .catch((err) => {
-        console.error(err);
-    });
+        const response = await api.moodleRequest('local_moon_save_layout',  args);
+        handleSaveResponse(response.data[0].data, action);
+    } else {
+        let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=savelayout&ts="+Date.now();
+        const formData = new FormData(); // pass data as a form
+        formData.append(constant.astroid_admin_token, 1);
+        formData.append('title', formInfo.title);
+        formData.append('desc', formInfo.desc);
+        formData.append('data', layout.value);
+        formData.append('thumbnail_old', formInfo.thumbnail);
+        formData.append('default', formInfo.default);
+        if (files.value !== null && files.value.length) {
+            formData.append('thumbnail', files.value[0]);
+        }
+        if (formInfo.name !== ``) {
+            formData.append('name', formInfo.name);
+        }
+        formData.append('template', constant.tpl_template_name);
+        formData.append('type', props.type);
+        save_disabled.value = true;
+
+        axios.post(url, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }).then((response) => {
+            handleSaveResponse(response.data, action);
+        }).catch((err) => {
+            console.error(err);
+        });
+    }
 }
 
 function resetValues() {
@@ -198,47 +221,57 @@ function cancelLayout() {
         callAjax();
     }
 }
-
-function deleteLayout() {
+function handleDeleteLayoutResponse(responseData) {
+    const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
+    const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
+    if (responseData.status === 'success') {
+        toast_msg.icon = 'fa-solid fa-rocket';
+        toast_msg.header = 'Layouts deleted.';
+        toast_msg.body = responseData.message;
+        toast_msg.color = 'green';
+        callAjax();
+    } else {
+        toast_msg.icon = 'fa-regular fa-face-sad-tear';
+        toast_msg.header = 'Error!';
+        toast_msg.body = responseData.message;
+        toast_msg.color = 'red';
+    }
+    toastBootstrap.show();
+}
+async function deleteLayout() {
     if (confirm(language.JGLOBAL_CONFIRM_DELETE) && checklist.value.length) {
-        let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=deletelayouts&ts="+Date.now();
         if (constant.cms_name === 'moodle') {
-            url = constant.site_url+`/local/moon/ajax/action.php?theme=${constant.template_name}&task=deletelayouts&filearea=${props.type}&itemid=0&sesskey=${constant.astroid_admin_token}`;
-        }
-        const formData = new FormData(); // pass data as a form
-        const toastAstroidMsg = document.getElementById(props.field.input.id+`_saveLayoutToast`);
-        const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-        formData.append(constant.astroid_admin_token, 1);
-        checklist.value.forEach(element => {
-            formData.append('layouts[]', element);
-        });
-        formData.append('template', constant.tpl_template_name);
-        formData.append('type', props.type);
-        axios.post(url, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        })
-        .then((response) => {
-            if (response.data.status === 'success') {
-                if (response.data.data) {
-                    toast_msg.icon = 'fa-solid fa-rocket';
-                    toast_msg.header = 'Sub-Layouts deleted.';
-                    toast_msg.body = 'You cannot undo this process.';
-                    toast_msg.color = 'green';
-                } else {
-                    toast_msg.icon = 'fa-regular fa-face-sad-tear';
-                    toast_msg.header = 'Error!';
-                    toast_msg.body = response.data.message;
-                    toast_msg.color = 'red';
-                }
-                callAjax();
-                toastBootstrap.show();
+            const response = await api.moodleRequest('local_moon_delete_layout', {
+                theme: constant.template_name,
+                task: 'deletelayouts',
+                filearea: props.type,
+                itemid: 0,
+                layouts: checklist.value
+            });
+            if (response.data[0].data.status === 'success') {
+                handleDeleteLayoutResponse(response.data[0].data);
             }
-        })
-        .catch((err) => {
-            console.error(err);
-        });
+        } else {
+            let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=deletelayouts&ts="+Date.now();
+            const formData = new FormData(); // pass data as a form
+            formData.append(constant.astroid_admin_token, 1);
+            checklist.value.forEach(element => {
+                formData.append('layouts[]', element);
+            });
+            formData.append('template', constant.tpl_template_name);
+            formData.append('type', props.type);
+            axios.post(url, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    handleDeleteLayoutResponse(response.data);
+                }
+            }).catch((err) => {
+                console.error(err);
+            });
+        }
     }
 }
 
