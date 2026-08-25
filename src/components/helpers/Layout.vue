@@ -375,7 +375,7 @@ async function saveSublayout() {
     if (constant.cms_name === 'moodle') {
         let args = {
             theme: constant.template_name,
-            task: 'savelayout',
+            task: 'save_layout',
             filearea: 'layouts',
             itemid: 0,
             data: sublayout.value,

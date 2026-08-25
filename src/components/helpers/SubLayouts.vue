@@ -159,7 +159,7 @@ async function saveLayout(action = 'save') {
     if (constant.cms_name === 'moodle') {
         let args = {
             theme: constant.template_name,
-            task: 'savelayout',
+            task: 'save_layout',
             filearea: props.type,
             itemid: 0,
             title: formInfo.title,
@@ -243,7 +243,7 @@ async function deleteLayout() {
         if (constant.cms_name === 'moodle') {
             const response = await api.moodleRequest('local_moon_delete_layout', {
                 theme: constant.template_name,
-                task: 'deletelayouts',
+                task: 'delete_layouts',
                 filearea: props.type,
                 itemid: 0,
                 layouts: checklist.value
@@ -329,7 +329,7 @@ async function callAjax() {
     if (constant.cms_name === 'moodle') {
         const response = await api.moodleRequest('local_moon_action', {
             theme: constant.template_name,
-            task: 'getlayouts',
+            task: 'get_layouts',
             filearea: props.type,
             itemid: 0
         });

@@ -232,7 +232,7 @@ function selectPreset(event, group) {
             const method = 'local_moon_preset';
             const args = {
                 theme: constant.template_name,
-                task: 'loadPreset',
+                task: 'load_preset',
                 name: event.target.value
             };
             const requests = [

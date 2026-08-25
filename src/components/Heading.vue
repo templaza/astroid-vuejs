@@ -69,7 +69,7 @@ async function clearCache() {
     if (constant.cms_name === 'moodle') {
         const response = await api.moodleRequest('local_moon_action', {
             theme: constant.template_name,
-            task: 'clearCache',
+            task: 'clear_cache',
         });
 
         if (response.data[0].data.status === 'success') {

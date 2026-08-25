@@ -72,7 +72,7 @@ async function getSublayouts() {
     if (constant.cms_name === 'moodle') {
         const response = await api.moodleRequest('local_moon_action', {
             theme: constant.template_name,
-            task: 'getlayouts',
+            task: 'get_layouts',
             filearea: 'layouts',
             itemid: 0
         });

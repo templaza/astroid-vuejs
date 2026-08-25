@@ -36,7 +36,7 @@ onMounted(async ()=>{
     if (constant.cms_name === 'moodle') {
         const response = await api.moodleRequest('local_moon_icon', {
             theme: constant.template_name,
-            task: 'getIcons',
+            task: 'get_icons',
             filearea: props.field.input.source + '_icon',
             itemid: 0,
             source: props.field.input.source

@@ -92,7 +92,7 @@ onMounted(async ()=>{
     if (constant.cms_name === 'moodle') {
         const response = await api.moodleRequest('local_moon_action', {
             theme: constant.template_name,
-            task: 'getfonts',
+            task: 'get_fonts',
             filearea: 'fonts',
             itemid: 0
         });

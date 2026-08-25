@@ -22,7 +22,7 @@ onBeforeMount(() => {
         const get_presets_method = 'local_moon_preset';
         const args = {
             theme: constant.template_name,
-            task: 'getPresets'
+            task: 'get_presets'
         };
 
         const requests = [
@@ -113,7 +113,7 @@ async function loadPreset(preset) {
             const load_method = 'local_moon_preset';
             const args = {
                 theme: constant.template_name,
-                task: 'loadPreset',
+                task: 'load_preset',
                 name: preset.name
             };
             const requests = [
@@ -187,7 +187,7 @@ async function deletePreset(index) {
                 const delete_method = 'local_moon_preset';
                 const args = {
                     theme: constant.template_name,
-                    task: 'deletePreset',
+                    task: 'delete_preset',
                     name: list.value[index].name
                 };
                 const requests = [
@@ -397,7 +397,7 @@ async function uploadPreset() {
             const import_method = 'local_moon_import_preset';
             const args = {
                 theme: constant.template_name,
-                task: 'importPreset',
+                task: 'import_preset',
                 title: formInfo.title,
                 desc: formInfo.description,
                 fileInfo: {
