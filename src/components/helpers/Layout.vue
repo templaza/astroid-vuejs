@@ -208,7 +208,7 @@ async function addElement(addon) {
         if (constant.cms_name === 'moodle') {
             const response = await api.moodleRequest('local_moon_layout', {
                 theme: constant.template_name,
-                task: 'getlayout',
+                task: 'get_layout',
                 filearea: 'layouts',
                 itemid: 0,
                 name: addon.name

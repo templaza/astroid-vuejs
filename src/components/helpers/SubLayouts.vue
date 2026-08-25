@@ -57,7 +57,7 @@ async function editLayout(filename = '') {
         if (constant.cms_name === 'moodle') {
             const response = await api.moodleRequest('local_moon_layout',  {
                 theme: constant.template_name,
-                task: 'getlayout',
+                task: 'get_layout',
                 filearea: props.type,
                 itemid: 0,
                 name: filename
