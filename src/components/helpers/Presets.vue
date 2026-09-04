@@ -400,14 +400,8 @@ async function uploadPreset() {
                 task: 'import_preset',
                 title: formInfo.title,
                 desc: formInfo.description,
-                fileInfo: {
-                    contextid: uploadResponse.data[0].contextid,
-                    component: uploadResponse.data[0].component,
-                    filearea: uploadResponse.data[0].filearea,
-                    itemid: uploadResponse.data[0].itemid,
-                    filepath: uploadResponse.data[0].filepath,
-                    filename: uploadResponse.data[0].filename
-                }
+                filename: uploadResponse.data[0].filename,
+                itemid: uploadResponse.data[0].itemid
             };
             const requests = [
                 {

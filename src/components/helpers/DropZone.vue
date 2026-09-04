@@ -46,11 +46,7 @@ const saveFiles = (files) => {
                     itemid: 0,
                     folder: props.folder,
                     fileInfo: {
-                        contextid: uploadResponse.data[0].contextid,
-                        component: uploadResponse.data[0].component,
-                        filearea: uploadResponse.data[0].filearea,
                         itemid: uploadResponse.data[0].itemid,
-                        filepath: uploadResponse.data[0].filepath,
                         filename: uploadResponse.data[0].filename
                     }
                 });
