@@ -29,6 +29,7 @@ import DynamicContent from "./DynamicContent.vue";
 import AstroidGetPro from "./AstroidGetPro.vue";
 import Regions from "./Regions.vue";
 import FromTo from "./FromTo.vue";
+import Tag from "./Tag.vue";
 
 const emit = defineEmits(['update:contentlayout', 'update:loadPreset', 'update:getPreset', 'update:subFormState', 'update:presetState', 'update:mainLayoutState']);
 const props = defineProps({
@@ -277,6 +278,9 @@ function removeDynamicField() {
     </select>
     <div v-else-if="props.field.input.type === `astroidregions`" class="astroid-regions">
         <Regions v-model="props.scope[props.field.name]" :field="props.field" :layoutType="props.layoutType" />
+    </div>
+    <div v-else-if="props.field.input.type === `astroidtag`" class="astroid-tag">
+        <Tag v-model="props.scope[props.field.name]" :field="props.field" />
     </div>
     <div v-else-if="props.field.input.type === `astroidgetpro`" class="astroid-get-pro card alert alert-warning mb-0">
         <AstroidGetPro :field="props.field" />
