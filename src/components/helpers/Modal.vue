@@ -16,16 +16,19 @@ onBeforeMount(()=>{
     }
 })
 
-const handleEscKey = (event) => {
+const handleKeyDown = (event) => {
     if (event.key === 'Escape') {
         emit('update:closeElement');
     }
+    if (event.key === 'Enter') {
+        saveModal();
+    }
 };
 onMounted(() => {
-    document.addEventListener('keydown', handleEscKey);
+    document.addEventListener('keydown', handleKeyDown);
 });
 onBeforeUnmount(() => {
-    document.removeEventListener('keydown', handleEscKey);
+    document.removeEventListener('keydown', handleKeyDown);
 });
 function checkShow(field) {
     if (field.ngShow !== '' && field.ngShow.match(/\[\S+?\]/)) {
@@ -87,7 +90,7 @@ function sidebarClick(id) {
 const pro_badge = '<span class="badge text-bg-danger ms-2">PRO</span>';
 </script>
 <template>
-    <div class="astroid-modal modal d-block" :id="props.element.type+`-`+props.element.id" tabindex="-1" aria-modal="true">
+    <div class="astroid-modal modal d-block" :id="props.element.type+`-`+props.element.id" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="position-absolute top-0 end-0 p-3">
