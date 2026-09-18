@@ -7,7 +7,7 @@ const props = defineProps(['modelValue', 'field', 'presetUpdated']);
 const constant  =   inject('constant', {});
 const theme = inject('theme', 'light');
 const content = ref(props.modelValue);
-const init = ref({})
+const init = ref({});
 
 const MONACO_EDITOR_OPTIONS = {
     automaticLayout: true,

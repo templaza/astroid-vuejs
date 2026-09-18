@@ -281,9 +281,9 @@ function selectLayout(element) {
     >
         <template #item="{ element, index }">
             <div v-if="props.group === `root`" class="astroid-section-container">
-                <nav class="section-toolbar navbar">
+                <nav class="section-toolbar navbar shadow-none">
                     <span class="navbar-text" href="#"><span class="section-handle handle bg-body-secondary px-1 py-1 rounded me-1"><i class="fa-solid fa-arrows-up-down-left-right"></i></span> {{ element.params.find((param) => param.name === 'title').value }}</span>
-                    <ul class="nav">
+                    <ul class="nav my-0">
                         <li class="nav-item">
                             <a class="nav-link px-1" href="#" title="Edit Section" @click.prevent="_editElement(element)"><i class="fas fa-pencil-alt"></i></a>
                         </li>
