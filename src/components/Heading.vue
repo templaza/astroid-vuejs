@@ -107,7 +107,7 @@ async function clearCache() {
 }
 </script>
 <template>
-  <header class="navbar navbar-expand-lg as-navbar sticky-top" :class="{'shadow-none border-0' : constant.cms_name === 'moodle'}">
+  <header class="navbar navbar-expand-lg as-navbar sticky-top" :class="{'shadow-none' : constant.cms_name === 'moodle'}">
     <nav class="container-xxl as-gutter flex-wrap flex-lg-nowrap" :class="{'px-xxl-0': constant.cms_name === 'moodle'}" aria-label="Main navigation">
       <div class="as-navbar-toggle">
         <button class="navbar-toggler p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#asSidebar" aria-controls="asSidebar" aria-label="Toggle docs navigation">
