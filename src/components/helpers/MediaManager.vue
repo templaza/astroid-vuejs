@@ -103,7 +103,7 @@ async function callAjax() {
             itemid: 0,
             folder: _currentFolder.value
         });
-        if (response.data[0].data.status === 'success') {
+        if (Array.isArray(response.data) && response.data[0] && response.data[0].error === false && response.data[0].data.status === 'success') {
             response.data[0].data.data = JSON.parse(response.data[0].data.data);
             generateData(response.data[0].data.data);
             _isloading.value = false;

@@ -20,9 +20,6 @@ const handleKeyDown = (event) => {
     if (event.key === 'Escape') {
         emit('update:closeElement');
     }
-    if (event.key === 'Enter') {
-        saveModal();
-    }
 };
 onMounted(() => {
     document.addEventListener('keydown', handleKeyDown);

@@ -44,7 +44,7 @@ const social_menu = [
   {title: 'Official Website', href: props.config.astroid_lib.astroid_link, icon: 'fas fa-meteor'},
   {title: 'Docs', href: props.config.astroid_lib.document_link, icon: 'fas fa-book'},
   {title: 'GitHub', href: props.config.astroid_lib.github_link, icon: 'fab fa-github'},
-  {title: 'Buy Me a Coffee', href: props.config.astroid_lib.donate_link, icon: 'fa-solid fa-mug-saucer'}
+  {title: props.config.astroid_lib.donate.text, href: props.config.astroid_lib.donate.link, icon: 'fa-solid fa-mug-saucer'}
 ]
 function submitForm() {
     emit('update:saveStyle', true);
@@ -72,7 +72,7 @@ async function clearCache() {
             task: 'clear_cache',
         });
 
-        if (response.data[0].data.status === 'success') {
+        if (Array.isArray(response.data) && response.data[0] && response.data[0].error === false && response.data[0].data.status === 'success') {
             showToast('fa-solid fa-eraser', 'Cache Cleared', response.data[0].data.message, 'darkviolet');
             cache_icon.value = 'fa-eraser';
         }

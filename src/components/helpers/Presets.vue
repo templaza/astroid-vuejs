@@ -8,6 +8,7 @@ const props = defineProps({
     scope: { type: Object, default: null }
 });
 const constant = inject('constant', {});
+const api = inject('api');
 const toast_msg = reactive({
     header: '',
     body:'',
@@ -455,9 +456,16 @@ const download = async (url, filename) => {
     document.body.removeChild(link);
 }
 
-function exportPreset(preset) {
+async function exportPreset(preset) {
     if (constant.cms_name === `moodle`) {
-        download(constant.root_url+'theme/'+constant.tpl_template_name+'/moon/presets/'+preset.name+'.json', preset.name+'.json');
+        const response = await api.moodleRequest('local_moon_preset', {
+            theme: constant.template_name,
+            task: 'export_preset',
+            name: preset.name
+        });
+        if (Array.isArray(response.data) && response.data[0] && response.data[0].error === false && response.data[0].data.status === 'success') {
+            await download(response.data[0].data.data, preset.name + '.json');
+        }
     } else {
         let url = 'index.php?t='+Math.random().toString(36).substring(7);
         const toastAstroidMsg = document.getElementById('loadPreset');

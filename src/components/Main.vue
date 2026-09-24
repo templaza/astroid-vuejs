@@ -328,8 +328,8 @@ const pro_badge = '<span class="badge text-bg-danger ms-2">PRO</span>';
       </div>
     </form>
     <nav class="nav justify-content-center mb-3 astroid-footer-links">
-      <a class="nav-link d-inline-flex align-items-center" href="https://ko-fi.com/astroidframework" title="Buy Me a Coffee" target="_blank"><img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Buy Me a Coffee" class="me-2">Buy Me a Coffee</a>
-        <a class="nav-link" :href="constant.jed_link" title="Rate and review for us" target="_blank"><i v-if="constant.cms === `joomla`" class="fa-brands fa-joomla me-2"></i><span v-if="constant.cms === `joomla`">Astroid on JED</span><span v-else>Moon on Moodle</span></a>
+      <a class="nav-link d-inline-flex align-items-center" :href="constant.donate.link" :title="constant.donate.text" target="_blank"><img :src="constant.donate.image" :alt="constant.donate.text" class="me-2">{{ constant.donate.text }}</a>
+        <a class="nav-link" :href="constant.jed_link" title="Rate and review for us" target="_blank"><i v-if="constant.cms_name === `joomla`" class="fa-brands fa-joomla me-2"></i><span v-if="constant.cms_name === `joomla`">Astroid on JED</span><span v-else>Moon on Moodle</span></a>
       <a class="nav-link" :href="constant.document_link" title="Go to Documentation" target="_blank">Documentation</a>
     </nav>
       <button type="button" id="saveWarningBtn" class="btn btn-primary d-none" data-bs-toggle="modal" data-bs-target="#saveWarning"></button>

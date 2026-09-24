@@ -1,6 +1,5 @@
 <script setup>
 import {onMounted, onUpdated, onUnmounted, ref, watch, inject, reactive} from 'vue';
-import axios from "axios";
 import { ModelListSelect } from "vue-search-select"
 import TypoResponsive from './TypoResponsive.vue';
 import { ColorPicker } from 'vue-color-kit'
@@ -9,7 +8,6 @@ const emit = defineEmits(['update:modelValue']);
 const props = defineProps(['modelValue', 'field', 'colorMode']);
 const theme = inject('theme', 'light');
 const constant = inject('constant', {});
-const api = inject('api');
 const font_styles = [
     {'value':'bold', 'text':'<strong>Bold</strong>'},
     {'value':'italic', 'text':'<em>Italic</em>'},
@@ -71,15 +69,15 @@ function getFontType(font_face) {
         font_type.value = 'google';
     }
 }
-function handleGetFontsResponse(responseData) {
-    options.system = responseData.system;
-    options.google = responseData.google;
-    options.local = responseData.local;
+function handleGetFontsResponse(typography) {
+    options.system = typography.system;
+    options.google = typography.google;
+    options.local = typography.local;
     if (options.local.length > 1) {
         fonttypes.value.push('local');
     }
     const font_name = typeof props.modelValue['font_face'] !== 'undefined' && props.modelValue['font_face'] ? props.modelValue['font_face'].split(':')[0] : '';
-    fontSelected.value = responseData[font_type.value].find(element => font_name === element.value.split(':')[0]) || {value: "", text: ""};
+    fontSelected.value = typography[font_type.value].find(element => font_name === element.value.split(':')[0]) || {value: "", text: ""};
 }
 onMounted(async ()=>{
     Object.keys(props.field.input.value).forEach(key => {
@@ -89,33 +87,7 @@ onMounted(async ()=>{
     })
     getFontType((typeof props.modelValue['font_face'] !== 'undefined' && props.modelValue['font_face']) ? props.modelValue['font_face'] : (props.field.input.value['font_face'] || ''));
 
-    if (constant.cms_name === 'moodle') {
-        const response = await api.moodleRequest('local_moon_action', {
-            theme: constant.template_name,
-            task: 'get_fonts',
-            filearea: 'fonts',
-            itemid: 0
-        });
-        if (response.data[0].data.status === 'success') {
-            response.data[0].data.data = JSON.parse(response.data[0].data.data);
-            handleGetFontsResponse(response.data[0].data.data);
-        }
-    } else {
-        let url = constant.site_url+"administrator/index.php?option=com_ajax&astroid=google-fonts&template="+constant.template_name+"&ts="+Date.now();
-        if (process.env.NODE_ENV === 'development') {
-            url = "fonts_ajax.txt?ts="+Date.now();
-        }
-        axios.get(url)
-            .then(function (response) {
-                if (response.status === 200) {
-                    handleGetFontsResponse(response.data);
-                }
-            })
-            .catch(function (error) {
-                // handle error
-                console.log(error);
-            });
-    }
+    handleGetFontsResponse(constant.typography);
 
     if (props.modelValue['font_color'].trim() !== '') {
         try {
@@ -243,7 +215,7 @@ function toggleCollapse() {
 </script>
 <template>
     <div v-if="props.field.input.options.collapse === true" class="font-collapse mb-4" @click.prevent="toggleCollapse" :class="{'active' : collapse}">
-        <link v-if="font_type === `google` && (typeof options[font_type].find((font) => font.value === fontSelected.value) !== 'undefined') && fontSelected.value !== `` && fontSelected.value !== `__default` && fontSelected.value.search(/^library-font-/) === -1" :href="`https://fonts.googleapis.com/css?family=`+fontSelected.value" rel="stylesheet" />
+        <link v-if="constant.hide_preview_font === 0 && font_type === `google` && (typeof options[font_type].find((font) => font.value === fontSelected.value) !== 'undefined') && fontSelected.value !== `` && fontSelected.value !== `__default` && fontSelected.value.search(/^library-font-/) === -1" :href="`https://fonts.googleapis.com/css?family=`+fontSelected.value" rel="stylesheet" />
         <div class="card card-body">
             <div class="d-flex align-items-center justify-content-between">
                 <div class="fontName position-relative" :style="
@@ -411,7 +383,7 @@ function toggleCollapse() {
         </div>
     </div>
     </Transition><Transition name="fade">
-    <div v-if="props.field.input.options.preview && props.field.input.options.collapse === false" class="typography-preview">
+    <div v-if="parseInt(constant.hide_preview_font) === 0 && props.field.input.options.preview && props.field.input.options.collapse === false" class="typography-preview">
         <link v-if="font_type === `google` && (typeof options[font_type].find((font) => font.value === fontSelected.value) !== 'undefined') && fontSelected.value !== `` && fontSelected.value !== `__default` && fontSelected.value.search(/^library-font-/) === -1" :href="`https://fonts.googleapis.com/css?family=`+fontSelected.value" rel="stylesheet" />
         <div class="card card-default card-body mt-4" :style="
             {

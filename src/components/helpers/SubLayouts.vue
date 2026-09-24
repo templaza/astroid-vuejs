@@ -248,7 +248,7 @@ async function deleteLayout() {
                 itemid: 0,
                 layouts: checklist.value
             });
-            if (response.data[0].data.status === 'success') {
+            if (Array.isArray(response.data) && response.data[0] && response.data[0].error === false && response.data[0].data.status === 'success') {
                 handleDeleteLayoutResponse(response.data[0].data);
             }
         } else {
@@ -333,7 +333,7 @@ async function callAjax() {
             filearea: props.type,
             itemid: 0
         });
-        if (response.data[0].data.status === 'success') {
+        if (Array.isArray(response.data) && response.data[0] && response.data[0].error === false && response.data[0].data.status === 'success') {
             response.data[0].data.data = JSON.parse(response.data[0].data.data);
             handleGetLayoutsResponse(response.data[0].data);
         }

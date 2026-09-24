@@ -53,6 +53,7 @@ function handleInit(editor) {
                 <Editor
                     v-model="content"
                     :licenseKey=constant.tiny_mce_license
+                    :tinymce-script-src="constant.tiny_mce_path"
                     :init="init"
                     @change="handleChange"
                     @init="handleInit"
