@@ -14,6 +14,7 @@ const $scope = ref({});
 const joomlaFields = ref([]);
 const astroidcontentlayouts = ref({});
 const constant  =   inject('constant', {});
+const api = inject('api');
 let action_link = '';
 const updatePreset = ref({});
 const mainLayout_saved = ref(true);
@@ -225,34 +226,18 @@ function handlePresetResponse(responseData, group) {
         toastBootstrap.show();
     }
 }
-function selectPreset(event, group) {
+async function selectPreset(event, group) {
     if (event.target.value !== '' && confirm('Your current configure will be lost and overwritten by new data. Are you sure?')) {
         if (constant.cms_name === `moodle`) {
-            const serviceUrl = `${constant.site_url}/lib/ajax/service.php`;
-            const method = 'local_moon_preset';
-            const args = {
+            const response = await api.moodleRequest('local_moon_preset',  {
                 theme: constant.template_name,
                 task: 'load_preset',
                 name: event.target.value
-            };
-            const requests = [
-                {
-                    index: 0,
-                    methodname: method,
-                    args: args
-                }
-            ];
-            axios.post(serviceUrl, JSON.stringify(requests), {
-                params: {
-                    sesskey: constant.astroid_admin_token,
-                    info: method
-                }
-            }).then((response) => {
+            });
+            if (Array.isArray(response.data) && response.data[0] && response.data[0].error === false) {
                 handlePresetResponse(response.data[0].data, group);
                 event.target.value = '';
-            }).catch((err) => {
-                console.error(err);
-            });
+            }
         } else {
             let url = 'index.php?t='+Math.random().toString(36).substring(7);
             if (process.env.NODE_ENV === 'development') {

@@ -35,7 +35,6 @@ const save_disabled = ref(false);
 const files = ref(null);
 const checklist = ref([]);
 const ajaxloading = ref(false);
-const serviceUrl = `${constant.site_url}/lib/ajax/service.php`;
 
 onBeforeMount(() => {
     if (props.modelValue !== '') {

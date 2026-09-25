@@ -18,7 +18,6 @@ const props = defineProps({
 const constant  =   inject('constant', {});
 const language  =   inject('language', []);
 const api    =   inject('api');
-const serviceUrl = `${constant.site_url}/lib/ajax/service.php`;
 
 onBeforeMount(()=>{
     layout.value    =   props.field.input.value;
