@@ -2,7 +2,7 @@
 import Heading from "@/components/Heading.vue";
 import {onBeforeMount, onMounted, provide, ref} from "vue";
 import { createApi } from './services/api';
-// import 'bootstrap/scss/bootstrap.scss'
+import 'bootstrap/scss/bootstrap.scss'
 import './assets/base.scss'
 import Sidebar from "@/components/Sidebar.vue";
 import Main from "@/components/Main.vue";
