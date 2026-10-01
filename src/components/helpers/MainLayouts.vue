@@ -482,9 +482,9 @@ function importLayout() {
             const data = JSON.parse(event.target.result);
             reloadLayout.value = true;
             layout.value = JSON.stringify(data.data);
-            formInfo.title = data.title || '';
-            formInfo.desc = data.desc || '';
-            formInfo.thumbnail = data.thumbnail || '';
+            // formInfo.title = data.title || '';
+            // formInfo.desc = data.desc || '';
+            // formInfo.thumbnail = data.thumbnail || '';
             files.value = null;
             document.getElementById(props.field.input.id+`_importLayout_file`).value = '';
             document.getElementById(props.field.input.id+`_importLayout_close`).click();
@@ -548,6 +548,7 @@ function isSystemLayout(name) {
                 <tr>
                     <th scope="col" width="1%"><input class="form-check-input" type="checkbox" value="" v-model="checkAll" @click="checkAllList"></th>
                     <th scope="col">{{ language.JGLOBAL_TITLE }}</th>
+                    <th scope="col" v-if="constant.cms_name === `moodle`">{{ language.type }}</th>
                     <th scope="col">{{ language.JGLOBAL_DESCRIPTION }}</th>
                     <th scope="col">{{ language.JDEFAULT }}</th>
                 </tr>
@@ -562,7 +563,7 @@ function isSystemLayout(name) {
                                 <li class="nav-item">
                                     <a class="nav-link py-0 ps-3 pe-1" href="#" title="Edit Element" @click.prevent="editLayout(item.name)"><i class="fas fa-edit"></i></a>
                                 </li>
-                                <li v-if="constant.cms_name === `moodle`" class="nav-item">
+                                <li v-if="constant.cms_name === `moodle` && item.layout === `custom`" class="nav-item">
                                     <a class="nav-link py-0 px-1" :href="constant.root_url + `local/moon/page.php?id=` + item.name" title="Page url" target="_blank"><i class="fas fa-link"></i></a>
                                 </li>
                                 <li class="nav-item">
@@ -571,6 +572,7 @@ function isSystemLayout(name) {
                             </ul>
                         </div>
                     </td>
+                    <td v-if="constant.cms_name === `moodle`">{{ item.layout }}</td>
                     <td>{{ item.desc }}</td>
                     <td><a v-if="isSystemLayout(item.name)" :class="{'link-secondary':item.name !== props.modelValue, 'link-warning':item.name === props.modelValue}" href="#" @click.prevent="markAsDefault(item.name)"><i class="fa-solid fa-star"></i></a></td>
                 </tr>
@@ -629,13 +631,13 @@ function isSystemLayout(name) {
                             <div>
                                 <div v-if="constant.cms_name === `moodle`" class="mb-3">
                                     <label :for="props.field.input.id+`_saveLayout_type`" class="form-label">{{ language.type }}</label>
-                                    <select class="form-select" v-model="formInfo.layout" @change="typeChange()" :id="props.field.input.id+`_saveLayout_type`">
+                                    <select class="form-select" v-model="formInfo.layout" @change="typeChange()" :id="props.field.input.id+`_saveLayout_type`" :disabled="formInfo.name !== `` && formInfo.layout !== `custom`">
                                         <option v-for="(text, value) in constant.layouts" :value="value" :disabled="selectedLayouts.includes(value) && (selected_layout === `` || (typeof layouts[selected_layout] !== `undefined` && typeof layouts[selected_layout].layout !== `undefined` && layouts[selected_layout].layout !== value))">{{text}}</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
                                     <label :for="props.field.input.id+`_saveLayout_title`" class="form-label">{{ language.JGLOBAL_TITLE }}</label>
-                                    <input type="text" v-model="formInfo.title" class="form-control" :id="props.field.input.id+`_saveLayout_title`" ref="_formTitle" placeholder="Title" :disabled="constant.cms_name === `moodle` && formInfo.layout !== `custom`" required>
+                                    <input type="text" v-model="formInfo.title" class="form-control" :id="props.field.input.id+`_saveLayout_title`" ref="_formTitle" placeholder="Title" required>
                                 </div>
                                 <div class="mb-3">
                                     <label :for="props.field.input.id+`_saveLayout_desc`" class="form-label">{{ language.JGLOBAL_DESCRIPTION }}</label>
