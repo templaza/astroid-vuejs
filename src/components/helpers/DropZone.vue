@@ -63,7 +63,7 @@ const saveFiles = (files) => {
             });
         } else {
             formData.append(constant.astroid_admin_token, 1);
-            axios.post(constant.base_url+'/administrator/index.php?option=com_ajax&astroid=media&action=upload&media='+props.media+'&dir=images/'+props.folder, formData, {
+            axios.post(constant.base_url+'/index.php?option=com_ajax&astroid=media&action=upload&media='+props.media+'&dir='+props.folder, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
