@@ -215,7 +215,7 @@ function toggleCollapse() {
 </script>
 <template>
     <div v-if="props.field.input.options.collapse === true" class="font-collapse mb-4" @click.prevent="toggleCollapse" :class="{'active' : collapse}">
-        <link v-if="constant.hide_preview_font === 0 && font_type === `google` && (typeof options[font_type].find((font) => font.value === fontSelected.value) !== 'undefined') && fontSelected.value !== `` && fontSelected.value !== `__default` && fontSelected.value.search(/^library-font-/) === -1" :href="`https://fonts.googleapis.com/css?family=`+fontSelected.value" rel="stylesheet" />
+        <link v-if="parseInt(constant.hide_preview_font) === 0 && font_type === `google` && (typeof options[font_type].find((font) => font.value === fontSelected.value) !== 'undefined') && fontSelected.value !== `` && fontSelected.value !== `__default` && fontSelected.value.search(/^library-font-/) === -1" :href="`https://fonts.googleapis.com/css?family=`+fontSelected.value" rel="stylesheet" />
         <div class="card card-body">
             <div class="d-flex align-items-center justify-content-between">
                 <div class="fontName position-relative" :style="
