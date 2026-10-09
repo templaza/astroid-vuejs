@@ -14,6 +14,7 @@ const $scope = ref({});
 const joomlaFields = ref([]);
 const astroidcontentlayouts = ref({});
 const constant  =   inject('constant', {});
+const api = inject('api');
 let action_link = '';
 const updatePreset = ref({});
 const mainLayout_saved = ref(true);
@@ -52,12 +53,24 @@ function backToLayouts() {
     emit('update:switchPage', (constant.cms_name === 'moodle' ? 'layout' : 'astroid_layout'), 'layout_group');
     emit('update:saveFinish', true);
 }
-function saveStyle() {
-    const action_link = props.config.astroid_lib.astroid_action.replace(/\&amp\;/g, '&');
+function handleSaveResponse(responseData) {
     const toastAstroidMsg = document.getElementById('mainMessage');
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-    const formData = new FormData(); // pass data as a form;
-    // const formData = new FormData(document.getElementById('astroid-form'));
+    toast_msg.icon = 'fa-solid fa-floppy-disk';
+    if (responseData.status === 'success') {
+        toast_msg.header= 'Style has been saved';
+        toast_msg.body = 'Style '+constant.template_name+' has been saved';
+        toast_msg.color = 'darkviolet';
+    } else {
+        toast_msg.header= 'Style did not saved yet';
+        toast_msg.body = responseData.message;
+        toast_msg.color = 'red';
+    }
+    emit('update:saveFinish', true);
+    toastBootstrap.show();
+}
+function saveStyle() {
+    const action_link = constant.astroid_action.replace(/\&amp\;/g, '&');
     joomlaFields.value.forEach(field => {
         if (typeof $scope.value[field] === 'undefined') {
             const el = document.getElementById('params_'+field);
@@ -72,35 +85,43 @@ function saveStyle() {
             }
         }
     });
-    formData.append('params', JSON.stringify($scope.value));
     if (constant.cms_name === `moodle`) {
-        formData.append('theme', constant.template_name);
-        formData.append('sesskey', props.config.astroid_lib.astroid_admin_token);
-    } else {
-        formData.append(props.config.astroid_lib.astroid_admin_token, 1);
-    }
-    axios.post(action_link, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    })
-        .then((response) => {
-            toast_msg.icon = 'fa-solid fa-floppy-disk';
-            if (response.data.status === 'success') {
-                toast_msg.header= 'Style has been saved';
-                toast_msg.body = 'Style '+props.config.astroid_lib.template_name+' has been saved';
-                toast_msg.color = 'darkviolet';
-            } else {
-                toast_msg.header= 'Style did not saved yet';
-                toast_msg.body = response.data.message;
-                toast_msg.color = 'red';
+        const save_method = 'local_moon_save';
+        const args = {
+            theme: constant.template_name,
+            params: JSON.stringify($scope.value),
+        };
+        const requests = [
+            {
+                index: 0,
+                methodname: save_method,
+                args: args
             }
-            emit('update:saveFinish', true);
-            toastBootstrap.show();
-        })
-        .catch((err) => {
+        ];
+        axios.post(action_link, JSON.stringify(requests), {
+            params: {
+                sesskey: constant.astroid_admin_token,
+                info: save_method
+            }
+        }).then((response) => {
+            handleSaveResponse(response.data[0].data);
+        }).catch((err) => {
             console.error(err);
         });
+    } else {
+        const formData = new FormData(); // pass data as a form;
+        formData.append('params', JSON.stringify($scope.value));
+        formData.append(constant.astroid_admin_token, 1);
+        axios.post(action_link, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }).then((response) => {
+            handleSaveResponse(response.data);
+        }).catch((err) => {
+            console.error(err);
+        });
+    }
 }
 function checkShow(field) {
   if (field.ngShow !== '' && field.ngShow.match(/\[\S+?\]/)) {
@@ -176,72 +197,77 @@ function loadPreset(value) {
 function getPreset(value) {
   presets.value = value;
 }
-function selectPreset(event, group) {
-  if (event.target.value !== '' && confirm('Your current configure will be lost and overwritten by new data. Are you sure?')) {
+function handlePresetResponse(responseData, group) {
     const toastAstroidMsg = document.getElementById('mainMessage');
     const toastBootstrap = Toast.getOrCreateInstance(toastAstroidMsg);
-    let url = 'index.php?t='+Math.random().toString(36).substring(7);
-    if (constant.cms_name === `moodle`) {
-        url = constant.site_url+`/local/moon/ajax/action.php?sesskey=${constant.astroid_admin_token}`;
-    }
-    if (process.env.NODE_ENV === 'development') {
-        url = "preset_ajax.txt?ts="+Date.now();
-    }
-    const formData = new FormData(); // pass data as a form
-    formData.append(props.config.astroid_lib.astroid_admin_token, 1);
-    formData.append('name', event.target.value);
-      if (constant.cms_name === `moodle`) {
-          formData.append('task', 'loadPreset');
-          formData.append('theme', props.config.astroid_lib.tpl_template_name);
-      } else {
-          formData.append('astroid', 'loadpreset');
-          formData.append('option', 'com_ajax');
-          formData.append('template', props.config.astroid_lib.tpl_template_name);
-      }
-    axios.post(url, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    })
-    .then((response) => {
-      if (response.data.status === 'success') {
+    if (responseData.status === 'success') {
         let tmp = {};
-        if (typeof response.data.data === 'string') {
-            tmp = JSON.parse(response.data.data);
+        if (typeof responseData.data === 'string') {
+            tmp = JSON.parse(responseData.data);
         } else {
-            tmp = response.data.data;
+            tmp = responseData.data;
         }
         group.fields.forEach(field => {
-          if (typeof tmp[field.name] !== 'undefined') {
-              $scope.value[field.name] = tmp[field.name]
-              updatePreset.value[field.name] = true;
-          }
+            if (typeof tmp[field.name] !== 'undefined') {
+                $scope.value[field.name] = tmp[field.name]
+                updatePreset.value[field.name] = true;
+            }
         });
         toast_msg.icon = 'fa-solid fa-rocket';
         toast_msg.header = 'Preset '+group.title+' Applied.';
         toast_msg.body = 'Please click "Save" button to save your changes!';
         toast_msg.color = 'green';
         toastBootstrap.show();
-      } else {
+    } else {
         toast_msg.icon = 'fa-regular fa-face-sad-tear';
         toast_msg.header = 'Preset '+group.title+' is not Applied.';
-        toast_msg.body = response.data.message;
+        toast_msg.body = responseData.message;
         toast_msg.color = 'red';
         toastBootstrap.show();
-      }
-      event.target.value = '';
-    })
-    .catch((err) => {
-      console.error(err);
-    });
-  }
+    }
+}
+async function selectPreset(event, group) {
+    if (event.target.value !== '' && confirm('Your current configure will be lost and overwritten by new data. Are you sure?')) {
+        if (constant.cms_name === `moodle`) {
+            const response = await api.moodleRequest('local_moon_preset',  {
+                theme: constant.template_name,
+                task: 'load_preset',
+                name: event.target.value
+            });
+            if (Array.isArray(response.data) && response.data[0] && response.data[0].error === false) {
+                handlePresetResponse(response.data[0].data, group);
+                event.target.value = '';
+            }
+        } else {
+            let url = 'index.php?t='+Math.random().toString(36).substring(7);
+            if (process.env.NODE_ENV === 'development') {
+                url = "preset_ajax.txt?ts="+Date.now();
+            }
+            const formData = new FormData(); // pass data as a form
+            formData.append(constant.astroid_admin_token, 1);
+            formData.append('name', event.target.value);
+            formData.append('astroid', 'loadpreset');
+            formData.append('option', 'com_ajax');
+            formData.append('template', constant.tpl_template_name);
+            axios.post(url, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }).then((response) => {
+                handlePresetResponse(response.data, group);
+                event.target.value = '';
+            }).catch((err) => {
+                console.error(err);
+            });
+        }
+    }
 }
 const pro_badge = '<span class="badge text-bg-danger ms-2">PRO</span>';
 </script>
 <template>
   <main class="as-main order-1">
     <form method="POST" :action="action_link" id="astroid-form">
-      <input type="hidden" id="astroid-admin-token" :name="props.config.astroid_lib.astroid_admin_token" value="1" />
+      <input type="hidden" id="astroid-admin-token" :name="constant.astroid_admin_token" value="1" />
       <div class="as-page ps-lg-2" :class="props.pageIndex[fieldSet.name]" v-for="fieldSet in props.config.astroid_content" :key="fieldSet.name">
         <div :id="`astroid-page-`+index" class="as-content" v-if="Object.keys(fieldSet.childs).length > 0" v-for="(group, index) in fieldSet.childs" :key="index" v-show="checkShowGroup(group, fieldSet.name, index)">
           <h3 v-if="group.title !== ''">{{ group.title }}<a v-if="group.help !== ``" class="link-secondary" :href="group.help" title="Help" target="_blank"><i class="fa-solid fa-circle-question fa-sm ms-2"></i></a></h3>
@@ -287,8 +313,8 @@ const pro_badge = '<span class="badge text-bg-danger ms-2">PRO</span>';
       </div>
     </form>
     <nav class="nav justify-content-center mb-3 astroid-footer-links">
-      <a class="nav-link d-inline-flex align-items-center" href="https://ko-fi.com/astroidframework" title="Buy Me a Coffee" target="_blank"><img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Buy Me a Coffee" class="me-2">Support Astroid with $10</a>
-      <a class="nav-link" :href="constant.jed_link" title="Reviews for Astroid on JED" target="_blank"><i class="fa-brands fa-joomla me-2"></i>Astroid on JED</a>
+      <a class="nav-link d-inline-flex align-items-center" :href="constant.donate.link" :title="constant.donate.text" target="_blank"><img :src="constant.donate.image" :alt="constant.donate.text" class="me-2">{{ constant.donate.text }}</a>
+        <a class="nav-link" :href="constant.jed_link" title="Rate and review for us" target="_blank"><i v-if="constant.cms_name === `joomla`" class="fa-brands fa-joomla me-2"></i><span v-if="constant.cms_name === `joomla`">Astroid on JED</span><span v-else>Moon on Moodle</span></a>
       <a class="nav-link" :href="constant.document_link" title="Go to Documentation" target="_blank">Documentation</a>
     </nav>
       <button type="button" id="saveWarningBtn" class="btn btn-primary d-none" data-bs-toggle="modal" data-bs-target="#saveWarning"></button>

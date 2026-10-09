@@ -1,9 +1,9 @@
 <script setup>
 import { onBeforeMount, ref, provide } from 'vue';
-import axios from "axios";
 import Layout from "./components/helpers/Layout.vue";
 import './assets/base.scss'
-const data = JSON.parse(document.getElementById('astroid_layout_module_json').innerHTML);
+const props = defineProps(['config']);
+const data = props.config;
 const layout = ref('{"sections":[]}');
 provide('constant', data.constant);
 provide('language', data.language);

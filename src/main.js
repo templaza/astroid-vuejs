@@ -10,24 +10,28 @@ let as_widgets = document.querySelectorAll('.as-article-widget-data');
 let as_module = document.getElementById('astroid-layout-module');
 if (typeof(astroid_app) !== 'undefined' && astroid_app !== null)
 {
-    const app = createApp(App);
+    const config = JSON.parse(document.getElementById("astroid-script-options").innerHTML);
+    const app = createApp(App, {
+        config: config
+    });
     app.use(VueMonacoEditorPlugin, {
         paths: {
             // The default CDN config
-            vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.0/min/vs'
+            vs: (process.env.NODE_ENV === 'development' ? 'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.0/min/vs' : config.astroid_lib.monaco_editor_path)
         },
     });
     app.mount('#astroid-app')
 }
 else if (as_widgets.length > 0) {
     as_widgets.forEach(as_widget => {
+        const config = JSON.parse(document.getElementById(as_widget.id+'_json').innerHTML);
         let app = createApp(Article, {
-            widget_json_id : as_widget.id
+            config: config
         });
         app.use(VueMonacoEditorPlugin, {
             paths: {
                 // The default CDN config
-                vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.0/min/vs'
+                vs: (process.env.NODE_ENV === 'development' ? 'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.0/min/vs' : config.constant.monaco_editor_path)
             },
         });
         app.mount('#'+as_widget.id);
@@ -35,11 +39,14 @@ else if (as_widgets.length > 0) {
 }
 else if (typeof(as_module) !== 'undefined' && as_module !== null)
 {
-    const app = createApp(Module);
+    const config = JSON.parse(document.getElementById('astroid_layout_module_json').innerHTML);
+    const app = createApp(Module, {
+        config: config
+    });
     app.use(VueMonacoEditorPlugin, {
         paths: {
             // The default CDN config
-            vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.0/min/vs'
+            vs: (process.env.NODE_ENV === 'development' ? 'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.0/min/vs' : config.constant.monaco_editor_path)
         },
     });
     app.mount('#astroid-layout-module')

@@ -7,7 +7,7 @@ const props = defineProps(['modelValue', 'field', 'presetUpdated']);
 const constant  =   inject('constant', {});
 const theme = inject('theme', 'light');
 const content = ref(props.modelValue);
-const init = ref({})
+const init = ref({});
 
 const MONACO_EDITOR_OPTIONS = {
     automaticLayout: true,
@@ -40,19 +40,21 @@ function handleInit(editor) {
 </script>
 <template>
     <ul class="nav nav-tabs" :id="field_id + `-my-editor`" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" :id="field_id + `-editor-tab`" data-bs-toggle="tab" :data-bs-target="`#` + field_id + `-editor-tab-pane`" type="button" role="tab" :aria-controls="field_id + `-editor-tab-pane`" aria-selected="true">Editor</button>
+        <li class="nav-item" role="presentation" v-if="typeof constant.editor === 'undefined' || (typeof constant.editor !== 'undefined' && constant.editor !== 'jce')">
+            <button class="nav-link" :class="{'active' : typeof constant.editor === 'undefined' || (typeof constant.editor !== 'undefined' && constant.editor !== 'jce')}" :id="field_id + `-editor-tab`" data-bs-toggle="tab" :data-bs-target="`#` + field_id + `-editor-tab-pane`" type="button" role="tab" :aria-controls="field_id + `-editor-tab-pane`" aria-selected="true">Editor</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" :id="field_id + `-html-tab`" data-bs-toggle="tab" :data-bs-target="`#` + field_id + `-html-tab-pane`" type="button" role="tab" :aria-controls="field_id + `-html-tab-pane`" aria-selected="false">View Source</button>
+            <button class="nav-link" :class="{'active' : typeof constant.editor !== 'undefined' && constant.editor === 'jce'}" :id="field_id + `-html-tab`" data-bs-toggle="tab" :data-bs-target="`#` + field_id + `-html-tab-pane`" type="button" role="tab" :aria-controls="field_id + `-html-tab-pane`" aria-selected="false">View Source</button>
         </li>
     </ul>
     <div class="tab-content" :id="field_id + `-my-editor-content`">
-        <div class="tab-pane fade show active" :id="field_id + `-editor-tab-pane`" role="tabpanel" :aria-labelledby="field_id + `-editor-tab`" tabindex="0">
+        <div class="tab-pane fade show active" :id="field_id + `-editor-tab-pane`" role="tabpanel" :aria-labelledby="field_id + `-editor-tab`" tabindex="0"
+             v-if="typeof constant.editor === 'undefined' || (typeof constant.editor !== 'undefined' && constant.editor !== 'jce')">
             <div v-show="!_isloading">
                 <Editor
                     v-model="content"
-                    :licenseKey=constant.tiny_mce_license
+                    :licenseKey="constant.tiny_mce_license"
+                    :tinymce-script-src="constant.tiny_mce_path"
                     :init="init"
                     @change="handleChange"
                     @init="handleInit"
@@ -63,7 +65,8 @@ function handleInit(editor) {
                 <div class="fa-beat-fade mt-3" style="--fa-beat-fade-opacity: 0.1; --fa-beat-fade-scale: 1.05;">Loading...</div>
             </div>
         </div>
-        <div class="tab-pane fade" :id="field_id + `-html-tab-pane`" role="tabpanel" :aria-labelledby="field_id + `-html-tab`" tabindex="0">
+        <div class="tab-pane fade" :id="field_id + `-html-tab-pane`" role="tabpanel" :aria-labelledby="field_id + `-html-tab`" tabindex="0"
+        :class="{'show active' : typeof constant.editor !== 'undefined' && constant.editor === 'jce'}">
             <vue-monaco-editor
                 v-model:value="content"
                 :theme="(theme === 'light' ? 'light' : 'vs-dark')"
