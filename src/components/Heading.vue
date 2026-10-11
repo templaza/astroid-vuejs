@@ -41,10 +41,10 @@ watch(switcher, (newValue) => {
 })
 
 const social_menu = [
-  {title: 'Official Website', href: props.config.astroid_lib.astroid_link, icon: 'fas fa-meteor'},
-  {title: 'Docs', href: props.config.astroid_lib.document_link, icon: 'fas fa-book'},
-  {title: 'GitHub', href: props.config.astroid_lib.github_link, icon: 'fab fa-github'},
-  {title: props.config.astroid_lib.donate.text, href: props.config.astroid_lib.donate.link, icon: 'fa-solid fa-mug-saucer'}
+  {title: 'Official Website', href: props.config.astroid_lib.astroid_link, icon: 'fas fa-meteor', color: '', title_class: 'd-lg-none ms-2'},
+  {title: 'Docs', href: props.config.astroid_lib.document_link, icon: 'fas fa-book', color: '', title_class: 'd-lg-none ms-2'},
+  {title: 'GitHub', href: props.config.astroid_lib.github_link, icon: 'fab fa-github', color: '', title_class: 'd-lg-none ms-2'},
+  {title: constant.is_pro ? constant.donate.text : 'Go Pro', href: constant.is_pro ? constant.donate.link : constant.go_pro_link, icon: constant.is_pro ? 'fa-solid fa-mug-saucer' : 'fa-solid fa-crown', color: 'link-danger', title_class: constant.is_pro ? 'd-lg-none ms-2' : 'ms-2'}
 ]
 function submitForm() {
     emit('update:saveStyle', true);
@@ -171,9 +171,9 @@ async function clearCache() {
           <hr class="d-lg-none">
           <ul class="navbar-nav flex-row flex-wrap ms-md-auto my-auto">
             <li class="nav-item col-6 col-lg-auto" v-for="item in social_menu" :key="item.value">
-              <a class="nav-link py-2 px-0 px-lg-2" :href="item.href" :title="item.title" target="_blank" rel="noopener">
+              <a class="nav-link py-2 px-0 px-lg-2" :class="item.color" :href="item.href" :title="item.title" target="_blank" rel="noopener">
                 <i :class="item.icon"></i>
-                <small class="d-lg-none ms-2">{{ item.title }}</small>
+                <small :class="item.title_class">{{ item.title }}</small>
               </a>
             </li>
           </ul>

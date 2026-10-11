@@ -19,6 +19,9 @@
   --as-pink-rgb: 214, 51, 132;
   --as-teal-rgb: 32, 201, 151;
   --as-violet-bg: var(--as-violet);
+  --as-violet-bg-subtle: rgba(var(--as-violet-rgb), .15);
+  --as-violet-border-subtle: rgba(var(--as-violet-rgb), .3);
+  --as-violet-text-emphasis: var(--as-violet);
   --as-toc-color: var(--as-violet);
   --as-sidebar-link-bg: rgba(var(--as-violet-rgb), .1);
   --as-layout-block-bg: rgba(var(--as-violet-rgb), .05);
@@ -32,6 +35,7 @@
 [data-bs-theme="dark"] {
   --as-violet: #9461fb;
   --as-violet-bg: #712cf9;
+  --as-violet-rgb: 148, 97, 251;
   --as-toc-color: var(--bs-emphasis-color);
   --as-sidebar-link-bg: rgba(84, 33, 187, .5);
   --as-layout-block-bg: rgba(84, 33, 187, .05);

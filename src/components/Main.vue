@@ -13,7 +13,8 @@ const props = defineProps({
 const $scope = ref({});
 const joomlaFields = ref([]);
 const astroidcontentlayouts = ref({});
-const constant  =   inject('constant', {});
+const constant = inject('constant', {});
+const language = inject('language', {});
 const api = inject('api');
 let action_link = '';
 const updatePreset = ref({});
@@ -312,6 +313,9 @@ const pro_badge = '<span class="badge text-bg-danger ms-2">PRO</span>';
         </div>
       </div>
     </form>
+      <div v-if="constant.cms_name === `joomla` && !constant.is_pro" class="ps-lg-2">
+          <div class="alert alert-primary my-4 px-4 rounded-pill text-center" role="alert" v-html="language.ASTROID_GET_PRO_ALERT"></div>
+      </div>
     <nav class="nav justify-content-center mb-3 astroid-footer-links">
       <a class="nav-link d-inline-flex align-items-center" :href="constant.donate.link" :title="constant.donate.text" target="_blank"><img :src="constant.donate.image" :alt="constant.donate.text" class="me-2">{{ constant.donate.text }}</a>
         <a class="nav-link" :href="constant.jed_link" title="Rate and review for us" target="_blank"><i v-if="constant.cms_name === `joomla`" class="fa-brands fa-joomla me-2"></i><span v-if="constant.cms_name === `joomla`">Astroid on JED</span><span v-else>Moon on Moodle</span></a>
