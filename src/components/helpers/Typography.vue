@@ -314,7 +314,7 @@ function toggleCollapse() {
                     />
                 </div>
                 <div v-if="props.field.input.options.lineheightpicker">
-                    <typo-responsive 
+                    <typo-responsive
                         v-model="props.modelValue" 
                         :field="props.field" 
                         :fieldname="'line_height'" 
