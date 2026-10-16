@@ -1,15 +1,20 @@
 <script setup>
 import Heading from "@/components/Heading.vue";
 import {onBeforeMount, onMounted, provide, ref} from "vue";
+import { createApi } from './services/api';
 import 'bootstrap/scss/bootstrap.scss'
 import './assets/base.scss'
 import Sidebar from "@/components/Sidebar.vue";
 import Main from "@/components/Main.vue";
-const astroid_config = JSON.parse(document.getElementById("astroid-script-options").innerHTML);
+const props = defineProps(['config']);
+const astroid_config = props.config;
+const api = createApi(astroid_config.astroid_lib);
 const theme = ref('light');
+
 provide('theme', theme);
 provide('constant', astroid_config.astroid_lib);
 provide('language', astroid_config.astroid_lang);
+provide('api', api);
 window.Toast = bootstrap.Toast;
 window.Modal = bootstrap.Modal;
 onBeforeMount(()=>{
@@ -21,8 +26,8 @@ onBeforeMount(()=>{
   }
 })
 
-const pageIndex     = ref(new Object());
-const fieldSet_tabs = ref(new Object());
+const pageIndex     = ref({});
+const fieldSet_tabs = ref({});
 
 onMounted(() => {
     astroid_config.astroid_content.forEach((fieldSet, idx) => {
@@ -89,7 +94,7 @@ function saveStyle() {
 </script>
 <template>
   <Heading :config="astroid_config" :saveStatus="saveFinished" @update:ColorMode="updateColorMode" @update:saveStyle="saveStyle" @update:saveFinished="status => (saveFinished = status)" />
-    <div class="container-xxl as-gutter mt-3 my-md-4 as-layout">
+    <div class="container-xxl as-gutter mt-3 my-md-4 as-layout" :class="{'px-xxl-0': astroid_config.astroid_lib.cms_name === 'moodle'}">
         <Sidebar :config="astroid_config" @sidebar-active="pageActive" />
         <Main :config="astroid_config"
               :page-index="pageIndex"

@@ -21,7 +21,7 @@ svg:not(:root).svg-inline--fa, svg:not(:host).svg-inline--fa {
     vertical-align: 0.1em;
 }
 .svg-inline--fa.fa-xs {
-    vertical-align: 0em;
+    vertical-align: 0;
 }
 .svg-inline--fa.fa-sm {
     vertical-align: -0.0714285705em;
@@ -219,4 +219,11 @@ svg:not(:root).svg-inline--fa, svg:not(:host).svg-inline--fa {
 
 .inline-size-auto {
     inline-size: auto !important;
+}
+
+.alert-primary {
+    --bs-alert-bg: var(--as-violet-bg-subtle);
+    --bs-alert-color: var(--bs-light-text-emphasis);
+    --bs-alert-border-color: var(--as-violet-border-subtle);
+    --bs-alert-link-color: var(--as-violet-text-emphasis);
 }
