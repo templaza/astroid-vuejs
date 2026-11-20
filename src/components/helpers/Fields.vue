@@ -41,11 +41,12 @@ const props = defineProps({
     actSave: {type: Boolean, default: false}
 });
 const constant = inject('constant', {});
+const promotion = inject('promotion', {});
 
 onBeforeMount(()=>{
     if (props.field.input.type === `astroidtypography`) {
         if (props.scope[props.field.name] === '') {
-            props.scope[props.field.name] = new Object();
+            props.scope[props.field.name] = {};
         }
         if (typeof props.scope[props.field.name] === 'string' && isJsonString(props.scope[props.field.name])) {
             props.scope[props.field.name] = JSON.parse(props.scope[props.field.name]);
@@ -283,6 +284,6 @@ function removeDynamicField() {
         <Tag v-model="props.scope[props.field.name]" :field="props.field" />
     </div>
     <div v-else-if="props.field.input.type === `astroidgetpro`" class="astroid-get-pro card alert alert-warning mb-0">
-        <AstroidGetPro :field="props.field" />
+        <AstroidGetPro :field="props.field" :promotion="promotion" />
     </div>
 </template>

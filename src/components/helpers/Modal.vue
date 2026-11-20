@@ -3,7 +3,7 @@ import { onBeforeMount, onMounted, onBeforeUnmount, ref } from 'vue';
 import Fields from './Fields.vue';
 const emit = defineEmits(['update:closeElement', 'update:saveElement']);
 const props = defineProps(['element', 'form', 'colorMode', 'layoutType']);
-const params = ref(new Object());
+const params = ref({});
 const subFormOpen = ref({name: '', value: false});
 onBeforeMount(()=>{
     props.form.info.params.forEach(param => {

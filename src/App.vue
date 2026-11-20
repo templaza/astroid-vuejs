@@ -2,6 +2,7 @@
 import Heading from "@/components/Heading.vue";
 import {onBeforeMount, onMounted, provide, ref} from "vue";
 import { createApi } from './services/api';
+import { getPromotion } from "./services/promotion";
 import 'bootstrap/scss/bootstrap.scss'
 import './assets/base.scss'
 import Sidebar from "@/components/Sidebar.vue";
@@ -10,11 +11,24 @@ const props = defineProps(['config']);
 const astroid_config = props.config;
 const api = createApi(astroid_config.astroid_lib);
 const theme = ref('light');
+const promotionService = getPromotion(astroid_config.astroid_lib);
+const promotion = ref(null);
 
 provide('theme', theme);
 provide('constant', astroid_config.astroid_lib);
 provide('language', astroid_config.astroid_lang);
 provide('api', api);
+provide('promotion', promotion);
+if (astroid_config.astroid_lib.cms_name === 'joomla') {
+    promotionService.request()
+        .then(data => {
+            promotion.value = data;
+        })
+        .catch(error => {
+            console.error("There was an error fetching the promotion!", error);
+        });
+}
+
 window.Toast = bootstrap.Toast;
 window.Modal = bootstrap.Modal;
 onBeforeMount(()=>{
