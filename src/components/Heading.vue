@@ -1,11 +1,12 @@
 <script setup>
 import axios from "axios";
-import {inject, onMounted, onUpdated, reactive, ref, watch} from "vue";
+import {computed, inject, onMounted, onUpdated, reactive, ref, watch} from "vue";
 
 const emit = defineEmits(['update:ColorMode','update:saveStyle','update:saveFinished']);
 const props = defineProps({
   config: { type: Object, default: null },
-    saveStatus: { type: Boolean, default: false }
+    saveStatus: { type: Boolean, default: false },
+    promotion: { type: Object, default: null }
 });
 
 const theme = inject('theme', 'light');
@@ -20,6 +21,16 @@ const toast_msg = reactive({
   body:'',
   icon: '',
   color:'darkviolet'
+});
+
+const promotion = computed(() => {
+    return props.promotion?.status === 'success'
+        ? props.promotion.data?.[0]
+        : null;
+});
+
+const go_pro_text = computed(() => {
+    return constant.is_pro ? constant.donate.text : (promotion.value ? 'Go Pro <strong>' + promotion.value.discount + ' OFF</strong> today!' : 'Go Pro');
 });
 
 const switcher = ref(false);
@@ -40,12 +51,11 @@ watch(switcher, (newValue) => {
   emit('update:ColorMode', newValue ? 'dark' : 'light');
 })
 
-const social_menu = [
+const social_menu = ref([
   {title: 'Official Website', href: props.config.astroid_lib.astroid_link, icon: 'fas fa-meteor', color: '', title_class: 'd-lg-none ms-2'},
   {title: 'Docs', href: props.config.astroid_lib.document_link, icon: 'fas fa-book', color: '', title_class: 'd-lg-none ms-2'},
-  {title: 'GitHub', href: props.config.astroid_lib.github_link, icon: 'fab fa-github', color: '', title_class: 'd-lg-none ms-2'},
-  {title: constant.is_pro ? constant.donate.text : 'Go Pro', href: constant.is_pro ? constant.donate.link : constant.go_pro_link, icon: constant.is_pro ? 'fa-solid fa-mug-saucer' : 'fa-solid fa-crown', color: 'link-danger', title_class: constant.is_pro ? 'd-lg-none ms-2' : 'ms-2'}
-]
+  {title: 'GitHub', href: props.config.astroid_lib.github_link, icon: 'fab fa-github', color: '', title_class: 'd-lg-none ms-2'}
+]);
 function submitForm() {
     emit('update:saveStyle', true);
     save_icon.value = 'fa-sync fa-spin'
@@ -176,6 +186,12 @@ async function clearCache() {
                 <small :class="item.title_class">{{ item.title }}</small>
               </a>
             </li>
+              <li class="nav-item col-6 col-lg-auto">
+                  <a class="nav-link py-2 px-0 px-lg-2 link-danger" :href="constant.is_pro ? constant.donate.link : constant.go_pro_link" :title="constant.is_pro ? 'Donate' : 'Go Pro'" target="_blank" rel="noopener">
+                      <i :class="constant.is_pro ? 'fa-solid fa-mug-saucer' : 'fa-solid fa-crown'"></i>
+                      <small :class="constant.is_pro ? 'd-lg-none ms-2' : 'ms-2'" v-html="go_pro_text"></small>
+                  </a>
+              </li>
           </ul>
           <div v-if="constant.cms_name !== `moodle`" class="astroid-color-mode d-lg-flex align-items-center ms-lg-2">
             <hr class="d-lg-none">
